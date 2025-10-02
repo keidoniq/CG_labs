@@ -17,12 +17,14 @@ private:
     Vertices2D initMatrix;
     Vertices2D currMatrix;
     Edges2D edges;
-    glm::mat3 accumulatedTransform; 
+    glm::mat3 accumulatedTransform;
 
+    bool isDragging;
+    glm::vec2 dragPos;
 public:
     Model2D(const Vertices2D& vertices, const Edges2D& edges):
         initMatrix(vertices), currMatrix(vertices), 
-        edges(edges), accumulatedTransform(glm::mat3(1.0f)) {}
+        edges(edges), accumulatedTransform(glm::mat3(1.0f)), isDragging(false) {}
     
     void applyTransformation();
     void resetTransformation();
@@ -33,4 +35,8 @@ public:
     void rotate(float angle);
     void shear(float shx, float shy);
     void reflect(bool reflectX, bool reflectY);
+
+    void startDrag(const glm::vec2& worldPos);
+    void drag(const glm::vec2& worldPos);
+    void endDrag();
 };

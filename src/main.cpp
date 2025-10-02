@@ -43,6 +43,7 @@ Scene2D* scene = nullptr;
 Model2D* testModel = nullptr;
 Vertices2D* originalVertices = nullptr;
 
+
 int main()
 {
     // glfw: initialize and configure
@@ -156,7 +157,6 @@ int main()
         triShader.bind();
 
         // Apply any pending transformations
-        scene->updModels();
 
         //Upd projection matrix for shder
         projection = glm::ortho(
@@ -218,7 +218,7 @@ int main()
         glClearColor(0.69, 0.79, 0.85, 0.74f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        scene->getCamera().drawAxes();
+        scene->render();
         // render model
         glBindVertexArray(VAO);
         //glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -244,22 +244,27 @@ int main()
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-        glm::vec2 screenPos(xpos, ypos);
-        
-        if (action == GLFW_PRESS) {
-            scene->handleMouseClick(screenPos);
-        } else if (action == GLFW_RELEASE) {
-            scene->handleMouseRelease();
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    glm::vec2 screenPos(xpos, ypos);
+
+    if (action == GLFW_PRESS) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            scene->handleMouseClick(screenPos, DragMode::Scene); // LMB → move scene
+        } 
+        else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            scene->handleMouseClick(screenPos, DragMode::Model); // RMB → move model
         }
+    } 
+    else if (action == GLFW_RELEASE) {
+        scene->handleMouseRelease();
     }
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS ||
+        glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         glm::vec2 screenPos(xpos, ypos);
         scene->handleMouseDrag(screenPos);
     }

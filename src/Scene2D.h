@@ -7,21 +7,27 @@
 #include "Model2D.h"
 #include <vector>
 
+enum class DragMode {
+    None, Scene, Model
+};
+
+
 class Scene2D {
 private:
     Camera2D camera;
     std::vector<Model2D*> models;
+    DragMode dragMode;
 
 public:
-    Scene2D(): camera() {}
+    Scene2D(): camera() { dragMode = DragMode::None; }
     
     void addModel(Model2D& model);
-    void updModels();
     void clearModels();
     Camera2D& getCamera() { return camera; }
     
     void render() const;
-    void handleMouseClick(const glm::vec2& screenPos);
+    void updModels() const;
+    void handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode);
     void handleMouseDrag(const glm::vec2& screenPos);
     void handleMouseRelease();
     void handleZoom(float factor, const glm::vec2& screenPos);

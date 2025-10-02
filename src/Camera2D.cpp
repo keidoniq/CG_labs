@@ -1,6 +1,13 @@
 #include "Camera2D.h"
 
-void Camera2D::setViewport(int width, int height) {
+Camera2D::~Camera2D()
+{
+    glDeleteVertexArrays(1, &axisVAO);
+    glDeleteBuffers(1, &axisVBO);
+}
+
+void Camera2D::setViewport(int width, int height)
+{
     W = width;
     H = height;
     maintainAspectRatio();
@@ -10,15 +17,12 @@ void Camera2D::setViewport(int width, int height) {
 
 void Camera2D::maintainAspectRatio() {
     float worldWidth = R - L;
-    float worldHeight = T - B;
     float aspect = float(W) / H;
+    float newWorldHeight = worldWidth / aspect;
+    float center = (T + B) * 0.5f;
     
-    float desiredWorldHeight = worldWidth / aspect;
-    if (desiredWorldHeight > worldHeight) {
-        float center = (T + B) * 0.5f;
-        T = center + desiredWorldHeight * 0.5f;
-        B = center - desiredWorldHeight * 0.5f;
-    }
+    T = center + newWorldHeight * 0.5f;
+    B = center - newWorldHeight * 0.5f;
 }
 
 glm::vec2 Camera2D::screenToWorld(const glm::vec2& screenPos) const {
@@ -29,7 +33,7 @@ glm::vec2 Camera2D::screenToWorld(const glm::vec2& screenPos) const {
 
 glm::vec2 Camera2D::worldToScreen(const glm::vec2& worldPos) const {
     float sx = ((worldPos.x - L) / (R - L)) * W;
-    float sy = H - ((worldPos.y - B) / (T - B)) * H;
+    float sy = ((T - worldPos.y) / (T - B)) * H;
     return glm::vec2(sx, sy);
 }
 
@@ -91,6 +95,7 @@ void Camera2D::updAxes() {
     // color
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    drawAxes();
 }
 
 void Camera2D::drawAxes() const{

@@ -26,20 +26,40 @@ void Model2D::translate(float tx, float ty)
 
 void Model2D::scale(float sx, float sy)
 {
-    accumulatedTransform = AffineTransform2D::scaling(sx, sy)*accumulatedTransform;
+    accumulatedTransform = AffineTransform2D::scaling(sx, sy) * accumulatedTransform;
 }
 
 void Model2D::rotate(float angle)
 {
-    accumulatedTransform = AffineTransform2D::rotation(angle)*accumulatedTransform;
+    accumulatedTransform = AffineTransform2D::rotation(angle) * accumulatedTransform;
 }
 
 void Model2D::shear(float shx, float shy)
 {
-    accumulatedTransform = AffineTransform2D::shearing(shx, shy)*accumulatedTransform;
+    accumulatedTransform = AffineTransform2D::shearing(shx, shy) * accumulatedTransform;
 }
 
 void Model2D::reflect(bool reflectX, bool reflectY)
 {
-    accumulatedTransform = AffineTransform2D::reflection(reflectX, reflectY)*accumulatedTransform;
+    accumulatedTransform = AffineTransform2D::reflection(reflectX, reflectY) * accumulatedTransform;
+}
+
+void Model2D::startDrag(const glm::vec2 &worldPos)
+{
+    isDragging = true;
+    dragPos = worldPos;
+}
+
+void Model2D::drag(const glm::vec2 &worldPos)
+{
+    if (!isDragging) return;
+    
+    glm::vec2 delta = worldPos - dragPos;
+    translate(delta.x, delta.y);
+    dragPos = worldPos; 
+}
+
+void Model2D::endDrag()
+{
+    isDragging = false;
 }

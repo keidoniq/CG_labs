@@ -29,14 +29,11 @@ private:
     float L, R, B, T;
     int W, H;
 
-    int posX, posY;
-    
     bool isDragging;
     glm::vec2 dragStartWorld;
     glm::vec4 startBounds;
     
     void maintainAspectRatio();
-
 public:
     Camera2D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, 
         float B=-DEFAULT_DIST, float T = DEFAULT_DIST, 
@@ -45,6 +42,7 @@ public:
         glGenVertexArrays(1, &axisVAO);
         glGenBuffers(1, &axisVBO);
     };
+    ~Camera2D();
     
     void setViewport(int width, int height);
     
