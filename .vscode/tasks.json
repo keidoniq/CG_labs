@@ -7,6 +7,7 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "${workspaceRoot}/src/*.cpp",
+                "${workspaceRoot}/src/shaders/*.cpp",
                 "${workspaceRoot}/src/glad.c",
                 "--std=c++11",
                 "-I${workspaceFolder}/dependencies/include",

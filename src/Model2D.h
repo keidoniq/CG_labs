@@ -1,0 +1,36 @@
+#pragma once
+#include "Vertices2D.h"
+#include "Edges2D.h"
+#include "AffineTransform2D.h"
+// Примерная структура класса Model2D.
+
+// Вершины модели хранятся в матрице размера 3×M (где M – число вершин модели). В каждом столбце хранятся однородные координаты соответствующей вершины.
+// Рёбра модели хранятся:
+// в целочисленной матрице размера K×2 (где K – число рёбер) – при этом в каждой строке матрицы хранятся номера двух вершин, соединённых рёбрами;
+
+// Кроме того, необходимо реализовать метод Apply(Matrix AT) применения к модели аффинного преобразования, заданного матрицей AT. В памяти в качестве полей должны храниться:
+// • исходная матрица вершин модели;
+// • матрица накопленного аффинного преобразования;
+// • матрица текущих вершин модели.
+class Model2D {
+private:
+    Vertices2D initMatrix;
+    Vertices2D currMatrix;
+    Edges2D edges;
+    glm::mat3 accumulatedTransform; 
+
+public:
+    Model2D(const Vertices2D& vertices, const Edges2D& edges):
+        initMatrix(vertices), currMatrix(vertices), 
+        edges(edges), accumulatedTransform(glm::mat3(1.0f)) {}
+    
+    void applyTransformation();
+    void resetTransformation();
+    const Vertices2D& getVertices() const { return currMatrix; }
+
+    void translate(float tx, float ty);
+    void scale(float sx, float sy);
+    void rotate(float angle);
+    void shear(float shx, float shy);
+    void reflect(bool reflectX, bool reflectY);
+};
