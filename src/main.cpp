@@ -1,18 +1,22 @@
 #include <iostream>
 #include <string>
 #include <map>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
-#include <cmath>
+
 #include "shaders/ShaderModule.h"
 #include "Model2D.h"
+#include "Scene2D.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -25,7 +29,8 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
 
 const std::map<std::string, float> TRANSFORM_COEF{
     {"TRANSLATE", 0.05f}, {"SCALE", 0.1f},
-    {"ROTATE_ANGLE", 10}, {"SHEAR", 0.1f}
+    {"ROTATE_ANGLE", 10}, {"SHEAR", 0.1f},
+    {"SCALE_IN", 2.f}, {"SCALE_OUT", 0.5f}, 
 };
 
 const float POLYGON_RADIUS = 0.4f;
@@ -34,6 +39,7 @@ const unsigned int POLYGON_N_SIDES = 6;
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 
+Scene2D* scene = nullptr;
 Model2D* testModel = nullptr;
 Vertices2D* originalVertices = nullptr;
 
@@ -57,6 +63,8 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
     // glad: loading OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -66,18 +74,23 @@ int main()
     }
 
     // build and compile shader program
-    ShaderModule triShader(VSHADER_PATH, FSHADER_PATH); 
+    ShaderModule triShader(VSHADER_PATH, FSHADER_PATH);
+
+    //scene create
+    scene = new Scene2D();
+    scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
+    scene->getCamera().updAxes();
 
     //model for testing
-    Vertices2D squareVertices;
-    squareVertices.addVertex(-0.3f, 0.f);  // 0
-    squareVertices.addVertex(-0.3f, 0.3f);   // 1
-    squareVertices.addVertex(0.3f, 0.3f);    // 2
-    squareVertices.addVertex(0.6f, 0.f);   // 3
-    squareVertices.addVertex(0.6f, -0.3f);   // 4
-    squareVertices.addVertex(0.6f, -0.6f);   // 5
-    squareVertices.addVertex(0.3f, -0.9f);   // 6
-    squareVertices.addVertex(0.f, -0.6f);   // 7
+    // Vertices2D squareVertices;
+    // squareVertices.addVertex(-0.3f, 0.f);  // 0
+    // squareVertices.addVertex(-0.3f, 0.3f);   // 1
+    // squareVertices.addVertex(0.3f, 0.3f);    // 2
+    // squareVertices.addVertex(0.6f, 0.f);   // 3
+    // squareVertices.addVertex(0.6f, -0.3f);   // 4
+    // squareVertices.addVertex(0.6f, -0.6f);   // 5
+    // squareVertices.addVertex(0.3f, -0.9f);   // 6
+    // squareVertices.addVertex(0.f, -0.6f);   // 7
 
     Vertices2D convexPolygon;
     for (int i = 0; i < POLYGON_N_SIDES; ++i) {
@@ -90,16 +103,16 @@ int main()
     //originalVertices = new Vertices2D(squareVertices);
     originalVertices = new Vertices2D(convexPolygon);
 
-    Edges2D squareEdges;
-    squareEdges.addEdge(0, 1);  
-    squareEdges.addEdge(1, 2);
-    squareEdges.addEdge(2, 3);
-    squareEdges.addEdge(3, 4);
-    squareEdges.addEdge(4, 5);
-    squareEdges.addEdge(5, 6);
-    squareEdges.addEdge(6, 7);
-    squareEdges.addEdge(7, 0);
-    squareEdges.addEdge(5, 7);
+    // Edges2D squareEdges;
+    // squareEdges.addEdge(0, 1);  
+    // squareEdges.addEdge(1, 2);
+    // squareEdges.addEdge(2, 3);
+    // squareEdges.addEdge(3, 4);
+    // squareEdges.addEdge(4, 5);
+    // squareEdges.addEdge(5, 6);
+    // squareEdges.addEdge(6, 7);
+    // squareEdges.addEdge(7, 0);
+    // squareEdges.addEdge(5, 7);
 
     Edges2D polygonEdges;
     for (int i = 0; i < POLYGON_N_SIDES - 1; ++i) {
@@ -110,6 +123,7 @@ int main()
     //create model
     //testModel = new Model2D(squareVertices, squareEdges);
     testModel = new Model2D(convexPolygon, polygonEdges);
+    scene->addModel(*testModel);
 
     //setup buffers
     unsigned int VBO, VAO, EBO;
@@ -124,11 +138,15 @@ int main()
     std::cout << std::string(17, '=') << "\nControls\n"
         << "W/A/S/D -> Translate up/down/right/left\n"
         << "Q/E -> Rotate\n"
-        << "Mouse scroll -> Scale\n"
+        << "I/J -> Scale\n"
         << "X/Y -> Shear\n"
         << "R/F -> Reflect X/Y\n"
         << "T -> Reset to Init\n"
         << "ESC -> Exit.\n";
+
+    glm::mat4 projection = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 model = glm::mat4(1.0f);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -138,7 +156,19 @@ int main()
         triShader.bind();
 
         // Apply any pending transformations
-        testModel->applyTransformation();
+        scene->updModels();
+
+        //Upd projection matrix for shder
+        projection = glm::ortho(
+            scene->getCamera().getLeft(), 
+            scene->getCamera().getRight(),
+            scene->getCamera().getBottom(), 
+            scene->getCamera().getTop(),
+            -1.0f, 1.0f
+        );
+        triShader.setMat4("projection", projection);
+        triShader.setMat4("view", view);
+        triShader.setMat4("model", model);
 
         // Get the transformed vertices for rendering
         Vertices2D currentVertices = testModel->getVertices();
@@ -188,6 +218,7 @@ int main()
         glClearColor(0.69, 0.79, 0.85, 0.74f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        scene->getCamera().drawAxes();
         // render model
         glBindVertexArray(VAO);
         //glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -199,7 +230,8 @@ int main()
         glfwPollEvents();
     }
 
-    //clear 
+    //clear
+    delete scene;
     delete testModel;
     delete originalVertices;
     glDeleteVertexArrays(1, &VAO);
@@ -208,6 +240,29 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        glm::vec2 screenPos(xpos, ypos);
+        
+        if (action == GLFW_PRESS) {
+            scene->handleMouseClick(screenPos);
+        } else if (action == GLFW_RELEASE) {
+            scene->handleMouseRelease();
+        }
+    }
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        glm::vec2 screenPos(xpos, ypos);
+        scene->handleMouseDrag(screenPos);
+    }
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -251,6 +306,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 testModel->shear(0.0f, TRANSFORM_COEF.at("SHEAR"));
                 std::cout << "Shear: Y-axis\n";
                 break;
+
+            // Scale
+            case GLFW_KEY_I:
+                testModel->scale(TRANSFORM_COEF.at("SCALE_IN"),TRANSFORM_COEF.at("SCALE_IN"));
+                std::cout << "Scale in\n";
+                break;
+            case GLFW_KEY_J:
+                testModel->scale(TRANSFORM_COEF.at("SCALE_OUT"),TRANSFORM_COEF.at("SCALE_OUT"));
+                std::cout << "Scale out\n";
+                break;
                 
             // Reflect
             case GLFW_KEY_R:
@@ -273,9 +338,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    printf("Scroll: Y=%.2f\n", yoffset);
+    std::cout << "Scroll - Zoom\n";
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    glm::vec2 screenPos(xpos, ypos);
+
     float coef = yoffset > 0 ? 1.1:0.9;
-    testModel->scale(coef, coef);
+    
+    scene->handleZoom(coef, screenPos);
 }
 
 void processInput(GLFWwindow *window)
@@ -287,4 +357,7 @@ void processInput(GLFWwindow *window)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+    if (scene) {
+        scene->getCamera().setViewport(width, height);
+    }
 }
