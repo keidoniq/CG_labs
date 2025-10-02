@@ -46,7 +46,7 @@ glm::mat3 AffineTransform2D::shearing(float shx, float shy) {
 }
 
 glm::mat3 AffineTransform2D::reflection(bool reflectX, bool reflectY) {
-    float sx = reflectX ? -1.0f : 1.0f;
-    float sy = reflectY ? -1.0f : 1.0f;
+    float sx = reflectX ? 1.0f : -1.0f;
+    float sy = reflectY ? 1.0f : -1.0f;
     return scaling(sx, sy);
 }
