@@ -25,6 +25,14 @@ void Camera2D::maintainAspectRatio() {
     B = center - newWorldHeight * 0.5f;
 }
 
+void Camera2D::updStartBounds(float startL, float startR, float startT, float startB)
+{
+    startBounds.at("L") = startL;
+    startBounds.at("B") = startB;
+    startBounds.at("R") = startR;
+    startBounds.at("T") = startT;
+}
+
 glm::vec2 Camera2D::screenToWorld(const glm::vec2& screenPos) const {
     float wx = L + (screenPos.x / W) * (R - L);
     float wy = B + ((H - screenPos.y) / H) * (T - B); 
@@ -53,7 +61,7 @@ void Camera2D::zoom(float factor, const glm::vec2& worldPoint) {
 void Camera2D::startDrag(const glm::vec2& worldPos) {
     isDragging = true;
     dragStartWorld = worldPos;
-    startBounds = glm::vec4(L, R, B, T);
+    updStartBounds(L, R, B, T);
 }
 
 void Camera2D::drag(const glm::vec2& worldPos) {
@@ -61,10 +69,10 @@ void Camera2D::drag(const glm::vec2& worldPos) {
     
     glm::vec2 delta = worldPos - dragStartWorld;
     
-    L = startBounds.x - delta.x;
-    R = startBounds.y - delta.x;
-    B = startBounds.z - delta.y;
-    T = startBounds.w - delta.y;
+    L = startBounds.at("L") - delta.x;
+    R = startBounds.at("R") - delta.x;
+    B = startBounds.at("B") - delta.y;
+    T = startBounds.at("T") - delta.y;
     
     updAxes();
 }

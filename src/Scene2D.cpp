@@ -27,31 +27,47 @@ void Scene2D::render() const {
 void Scene2D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode) {
     dragMode = newDragMode;
     glm::vec2 worldPos = camera.screenToWorld(screenPos);
-    if(dragMode == DragMode::Model and !models.empty()){
-        models[0]->startDrag(worldPos);
-    }
-    else if (dragMode == DragMode::Scene){
-        camera.startDrag(worldPos);
+    switch(dragMode){
+        case DragMode::Model:
+            if(!models.empty())
+                models[0]->startDrag(worldPos);
+            break;
+        case DragMode::Scene:
+            camera.startDrag(worldPos);
+            break;
+        case DragMode::None:
+        default:
+            break;
     }
 }
 
 void Scene2D::handleMouseDrag(const glm::vec2& screenPos) {
     glm::vec2 worldPos = camera.screenToWorld(screenPos);
 
-    if(dragMode == DragMode::Model and !models.empty()){
-        models[0]->drag(worldPos);
-    }
-    else if (dragMode == DragMode::Scene){
-        camera.drag(worldPos);
+    switch(dragMode){
+        case DragMode::Model:
+            if(!models.empty())
+                models[0]->drag(worldPos);
+            break;
+        case DragMode::Scene:
+            camera.drag(worldPos);
+            break;
+        case DragMode::None:
+        default:
+            break;
     }
 }
 
 void Scene2D::handleMouseRelease() {
-    if(dragMode == DragMode::Model){
-        models[0]->endDrag();
-    }
-    else if (dragMode == DragMode::Scene){
-        camera.endDrag();
+    switch(dragMode){
+        case DragMode::Model:
+            models[0]->endDrag();
+            break;
+        case DragMode::Scene:
+            camera.endDrag();
+            break;
+        case DragMode::None:default:
+        break;
     }
     dragMode = DragMode::None;
 }

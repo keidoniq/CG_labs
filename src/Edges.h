@@ -6,7 +6,8 @@
 // Рёбра модели хранятся в целочисленной матрице размера K×2 (где K – число рёбер)
 // – при этом в каждой строке матрицы хранятся номера двух вершин, соединённых рёбрами;
 using Edge = std::pair<int,int>;
-class Edges2D {
+//DONE renaming Edges2D -> Edges are the same for 2d and 3d - think about it
+class Edges {
 private:
     std::set<Edge> edges; // K×2 матрица
 

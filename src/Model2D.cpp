@@ -2,7 +2,7 @@
 
 void Model2D::applyTransformation()
 {
-    Matrix initVertices = initMatrix.getVertices();
+    VerticesMatrix initVertices = initMatrix.getVertices();
     Vertices2D newVertices;
     
     for (size_t i = 0; i < initVertices.size(); ++i) {

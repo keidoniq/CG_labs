@@ -2,11 +2,12 @@
 #include "HomogeneousCoordinates2D.h"
 #include <glm/glm.hpp>
 #include <vector>
-using Matrix = std::vector<HomogeneousCoordinates2D>;
+//DONE VerticesMatrix
+using VerticesMatrix = std::vector<HomogeneousCoordinates2D>;
 
 class Vertices2D {
 private:
-    Matrix verticesMatrix;
+    VerticesMatrix verticesMatrix;
     
 public:
     Vertices2D() {};
@@ -15,13 +16,13 @@ public:
         verticesMatrix.push_back(HomogeneousCoordinates2D(x,y));
     }
     
-    Matrix getVertices() {
+    VerticesMatrix getVertices() {
         return verticesMatrix; 
     }
-    void setVertices(Matrix otherVerticesMatrix){
+    void setVertices(VerticesMatrix otherVerticesMatrix){
         verticesMatrix = otherVerticesMatrix;
     }
-    const Matrix& getVertices() const {
+    const VerticesMatrix& getVertices() const {
         return verticesMatrix; 
     }
 };

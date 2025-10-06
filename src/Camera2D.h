@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <iostream>
+#include <map>
 // Примерная структура класса Camera2D. Поля класса Camera2D:
 // • L, R, B, T (мировые координаты границ окна для первого способа) 
     //либо X0, Y0, px, py (для второго способа);
@@ -31,16 +32,23 @@ private:
 
     bool isDragging;
     glm::vec2 dragStartWorld;
-    glm::vec4 startBounds;
-    
+    //DONE glm::vec4 startBounds -> readable L,R,B,T
+    std::map<std::string, float> startBounds;
+
+    void updStartBounds(float startL, float startR, float startT, float startB);
     void maintainAspectRatio();
 public:
     Camera2D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, 
         float B=-DEFAULT_DIST, float T = DEFAULT_DIST, 
         int W = 800, int H = 600, bool isDragging = false):
         L(L), R(R), B(B), T(T), W(W), H(H), isDragging(isDragging) {
-        glGenVertexArrays(1, &axisVAO);
-        glGenBuffers(1, &axisVBO);
+
+            startBounds.emplace("L", L);
+            startBounds.emplace("H", H);
+            startBounds.emplace("B", B);
+            startBounds.emplace("T", T);
+            glGenVertexArrays(1, &axisVAO);
+            glGenBuffers(1, &axisVBO);
     };
     ~Camera2D();
     
@@ -64,5 +72,4 @@ public:
     float getTop() const { return T; }
     
     glm::vec4 getViewport() const { return glm::vec4(L, R, B, T); }
-
 };

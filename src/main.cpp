@@ -104,7 +104,7 @@ int main()
     //originalVertices = new Vertices2D(squareVertices);
     originalVertices = new Vertices2D(convexPolygon);
 
-    // Edges2D squareEdges;
+    // Edges squareEdges;
     // squareEdges.addEdge(0, 1);  
     // squareEdges.addEdge(1, 2);
     // squareEdges.addEdge(2, 3);
@@ -115,7 +115,7 @@ int main()
     // squareEdges.addEdge(7, 0);
     // squareEdges.addEdge(5, 7);
 
-    Edges2D polygonEdges;
+    Edges polygonEdges;
     for (int i = 0; i < POLYGON_N_SIDES - 1; ++i) {
         polygonEdges.addEdge(i, i + 1);
     }
@@ -159,12 +159,13 @@ int main()
         // Apply any pending transformations
 
         //Upd projection matrix for shder
+        //TODO from main to camera -> think about mat4
+        //TODO projection - its purpose and doc
         projection = glm::ortho(
             scene->getCamera().getLeft(), 
             scene->getCamera().getRight(),
             scene->getCamera().getBottom(), 
-            scene->getCamera().getTop(),
-            -1.0f, 1.0f
+            scene->getCamera().getTop()
         );
         triShader.setMat4("projection", projection);
         triShader.setMat4("view", view);
@@ -172,7 +173,7 @@ int main()
 
         // Get the transformed vertices for rendering
         Vertices2D currentVertices = testModel->getVertices();
-        Matrix transformedVertices = currentVertices.getVertices();
+        VerticesMatrix transformedVertices = currentVertices.getVertices();
 
         //vertex data for OpenGL
         int i = 0;
@@ -248,6 +249,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     glfwGetCursorPos(window, &xpos, &ypos);
     glm::vec2 screenPos(xpos, ypos);
 
+    //TODO if -> switch
     if (action == GLFW_PRESS) {
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             scene->handleMouseClick(screenPos, DragMode::Scene); // LMB → move scene
@@ -277,65 +279,65 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             // Translate
             case GLFW_KEY_W:
                 testModel->translate(0.0f, TRANSFORM_COEF.at("TRANSLATE"));
-                std::cout << "Translate: Up\n";
+                //std::cout << "Translate: Up\n";
                 break;
             case GLFW_KEY_S:
                 testModel->translate(0.0f, -TRANSFORM_COEF.at("TRANSLATE"));
-                std::cout << "Translate: Down\n";
+                //std::cout << "Translate: Down\n";
                 break;
             case GLFW_KEY_A:
                 testModel->translate(-TRANSFORM_COEF.at("TRANSLATE"), 0.0f);
-                std::cout << "Translate: Left\n";
+                //std::cout << "Translate: Left\n";
                 break;
             case GLFW_KEY_D:
                 testModel->translate(TRANSFORM_COEF.at("TRANSLATE"), 0.0f);
-                std::cout << "Translate: Right\n";
+                //std::cout << "Translate: Right\n";
                 break;
                 
             // Rotate
             case GLFW_KEY_Q:
                 testModel->rotate(glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE")));
-                std::cout << "Rotate: clockwise\n";
+                //std::cout << "Rotate: clockwise\n";
                 break;
             case GLFW_KEY_E:
                 testModel->rotate(glm::radians(-TRANSFORM_COEF.at("ROTATE_ANGLE")));
-                std::cout << "Rotate: otherwise\n";
+                //std::cout << "Rotate: otherwise\n";
                 break;
                 
             // Sheare
             case GLFW_KEY_X:
                 testModel->shear(TRANSFORM_COEF.at("SHEAR"), 0.0f);
-                std::cout << "Shear: X-axis\n";
+                //std::cout << "Shear: X-axis\n";
                 break;
             case GLFW_KEY_Y:
                 testModel->shear(0.0f, TRANSFORM_COEF.at("SHEAR"));
-                std::cout << "Shear: Y-axis\n";
+                //std::cout << "Shear: Y-axis\n";
                 break;
 
             // Scale
             case GLFW_KEY_I:
-                testModel->scale(TRANSFORM_COEF.at("SCALE_IN"),TRANSFORM_COEF.at("SCALE_IN"));
-                std::cout << "Scale in\n";
+                testModel->scale(TRANSFORM_COEF.at("SCALE_IN"),1.f);
+                //std::cout << "Scale in\n";
                 break;
             case GLFW_KEY_J:
-                testModel->scale(TRANSFORM_COEF.at("SCALE_OUT"),TRANSFORM_COEF.at("SCALE_OUT"));
-                std::cout << "Scale out\n";
+                testModel->scale(TRANSFORM_COEF.at("SCALE_OUT"),1.f);
+                //std::cout << "Scale out\n";
                 break;
                 
             // Reflect
             case GLFW_KEY_R:
                 testModel->reflect(true, false);
-                std::cout << "Reflect: X-axis\n";
+                //std::cout << "Reflect: X-axis\n";
                 break;
             case GLFW_KEY_F:
                 testModel->reflect(false, true);
-                std::cout << "Reflect: Y-axis\n";
+                //std::cout << "Reflect: Y-axis\n";
                 break;
                 
             // Reset
             case GLFW_KEY_T:
                 testModel->resetTransformation();
-                std::cout << "Reset all transformations\n";
+                //std::cout << "Reset all transformations\n";
                 break;
         }
     }
@@ -343,7 +345,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    std::cout << "Scroll - Zoom\n";
+    //std::cout << "Scroll - Zoom\n";
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
     glm::vec2 screenPos(xpos, ypos);

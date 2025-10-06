@@ -27,6 +27,7 @@ public:
     
     void render() const;
     void updModels() const;
+    //DONE from if to switch
     void handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode);
     void handleMouseDrag(const glm::vec2& screenPos);
     void handleMouseRelease();

@@ -37,6 +37,19 @@ glm::mat3 AffineTransform2D::rotation(float angle) {
     );
 }
 
+glm::mat3 AffineTransform2D::rotation(float c, float s)
+{
+    float norm = 1.f/glm::sqrt(c*c + s*s);
+    float cos_phi = c*norm;
+    float sin_phi = s*norm;
+    
+    return glm::mat3(
+        cos_phi, -sin_phi, 0.0f,
+        sin_phi,  cos_phi,  0.0f,
+        0.0f,  0.0f,  1.0f
+    );
+}
+
 glm::mat3 AffineTransform2D::shearing(float shx, float shy) {
     return glm::mat3(
         1.0f, shy,   0.0f,
