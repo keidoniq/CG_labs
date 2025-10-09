@@ -32,7 +32,6 @@ private:
 
     bool isDragging;
     glm::vec2 dragStartWorld;
-    //DONE glm::vec4 startBounds -> readable L,R,B,T
     std::map<std::string, float> startBounds;
 
     void updStartBounds(float startL, float startR, float startT, float startB);
@@ -44,7 +43,7 @@ public:
         L(L), R(R), B(B), T(T), W(W), H(H), isDragging(isDragging) {
 
             startBounds.emplace("L", L);
-            startBounds.emplace("H", H);
+            startBounds.emplace("R", R);
             startBounds.emplace("B", B);
             startBounds.emplace("T", T);
             glGenVertexArrays(1, &axisVAO);

@@ -87,20 +87,20 @@ void Camera2D::clear() const {
 
 void Camera2D::updAxes() {
     float axisVertices[] = {
-        L, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-        R, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-        0.0f, B, 0.0f,  0.0f, 0.0f, 1.0f,
-        0.0f, T, 0.0f,  0.0f, 0.0f, 1.0f,
+        L, 0.f, 0.f,  0.f, 0.f, 1.f,
+        R, 0.f, 0.f,  0.f, 0.f, 1.f,
+        0.f, B, 0.f,  0.f, 0.f, 1.f,
+        0.f, T, 0.f,  0.f, 0.f, 1.f,
     };
 
     glBindVertexArray(axisVAO);
     glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(axisVertices), axisVertices, GL_STATIC_DRAW);
 
-    // position
+    // for position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // color
+    // for color
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     drawAxes();

@@ -12,5 +12,6 @@ public:
     float y() const { return coords.y; }
     float z() const { return coords.z; }
 
-    const glm::vec3& getHomogeneousCoordinates() const { return coords; }
+    const glm::vec3 getHomogeneousCoordinates() const { return coords; }
+    const glm::vec2 getCartesianCoordinates() const {return glm::vec2(coords.x,coords.y);}
 };

@@ -31,8 +31,8 @@ glm::mat3 AffineTransform2D::rotation(float angle) {
     float sin_phi = glm::sin(angle);
     
     return glm::mat3(
-        cos_phi, -sin_phi, 0.0f,
-        sin_phi,  cos_phi,  0.0f,
+        cos_phi, sin_phi, 0.0f,
+        -sin_phi,  cos_phi,  0.0f,
         0.0f,  0.0f,  1.0f
     );
 }
@@ -44,8 +44,8 @@ glm::mat3 AffineTransform2D::rotation(float c, float s)
     float sin_phi = s*norm;
     
     return glm::mat3(
-        cos_phi, -sin_phi, 0.0f,
-        sin_phi,  cos_phi,  0.0f,
+        cos_phi, sin_phi, 0.0f,
+        -sin_phi,  cos_phi,  0.0f,
         0.0f,  0.0f,  1.0f
     );
 }

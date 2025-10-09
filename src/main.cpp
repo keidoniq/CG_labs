@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <map>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -44,7 +43,6 @@ const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 Scene2D* scene = nullptr;
 Model2D* testModel = nullptr;
 Vertices2D* originalVertices = nullptr;
-
 
 int main()
 {
@@ -113,10 +111,8 @@ int main()
     glGenBuffers(1, &EBO);
 
     //gl wireframe rendering
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 model = glm::mat4(1.0f);
 
@@ -127,32 +123,8 @@ int main()
         processInput(window);
         triShader.bind();
 
-        // Apply any pending transformations
-
-        //Upd projection matrix for shder
-        //TODO from main to camera
-        projection = glm::ortho(
-            scene->getCamera().getLeft(), 
-            scene->getCamera().getRight(),
-            scene->getCamera().getBottom(), 
-            scene->getCamera().getTop()
-        );
-        //done projection - its purpose and doc
-        // std::cout << "\nProjection\n" 
-        //     << projection << '\n';
-        // std::cout << "\nFrom camera\n"
-        //     << scene->getCamera().getProjectionMatrix() << '\n';
-        
-        // glm::vec4 coords = scene->getCamera().getViewport();
-        // for (int i = 0; i < coords.length(); i++) {
-        //     std::cout << coords[i] << ' ';
-        // }
-        // std::cout << '\n';
-        // glm::vec2 coords2 = scene->getCamera().worldToScreen(glm::vec2(0,0));
-        // for (int i = 0; i < coords2.length(); i++) {
-        //     std::cout << coords2[i] << ' ';
-        // }
-        // std::cout << '\n';
+        //Upd projection matrix for shader
+        glm::mat4 projection = scene->getCamera().getProjectionMatrix();
 
         triShader.setMat4("projection", projection);
         triShader.setMat4("view", view);
@@ -231,7 +203,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     glfwGetCursorPos(window, &xpos, &ypos);
     glm::vec2 screenPos(xpos, ypos);
 
-    //done if -> switch
     switch (action) {
         case GLFW_PRESS:
             switch (button) {
@@ -266,39 +237,38 @@ std::string controlsInfo() {
        << "I/J -> Scale\n"
        << "X/Y -> Shear\n"
        << "R/F -> Reflect X/Y\n"
+       << "1: Reflect around custom axis, X\n"
+       << "2: Reflect around custom axis, Y\n"
+       << "3: Reflect around custom axis, X and Y\n"
+       << "4: Scale around custom axis, X\n"
+       << "5: Scale around custom axis, Y\n"
+       << "6: Scale around custom axis, X and Y\n"
+       << "7: Shear along custom axis, X\n"
+       << "8: Shear along custom axis, Y\n"
+       << "9: Shear along custom axis, X and Y\n"
        << "T -> Reset to Init\n"
        << "ESC -> Exit.\n";
     return ss.str();
 }
 
-std::ostream &operator<<(std::ostream &os, const glm::mat4 &mat)
-{
-    os << std::fixed;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            os << mat[i][j] << " ";
-        }
-        os << '\n';
-    }
-    return os;
-}
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    Vertices2D currentVertices = testModel->getVertices();
+    VerticesMatrix verticesMatrix = currentVertices.getVertices();
+    glm::vec2 customPoint1 = verticesMatrix.front().getCartesianCoordinates();
+    glm::vec2 customPoint2 = verticesMatrix[3].getCartesianCoordinates();
+
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
             // Translate
             case GLFW_KEY_W:
                 testModel->translate(0.0f, TRANSFORM_COEF.at("TRANSLATE"));
-                //std::cout << "Translate: Up\n";
                 break;
             case GLFW_KEY_S:
                 testModel->translate(0.0f, -TRANSFORM_COEF.at("TRANSLATE"));
-                //std::cout << "Translate: Down\n";
                 break;
             case GLFW_KEY_A:
                 testModel->translate(-TRANSFORM_COEF.at("TRANSLATE"), 0.0f);
-                //std::cout << "Translate: Left\n";
                 break;
             case GLFW_KEY_D:
                 testModel->translate(TRANSFORM_COEF.at("TRANSLATE"), 0.0f);
@@ -307,47 +277,73 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             // Rotate
             case GLFW_KEY_Q:
                 testModel->rotate(glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE")));
-                //std::cout << "Rotate: clockwise\n";
                 break;
             case GLFW_KEY_E:
                 testModel->rotate(glm::radians(-TRANSFORM_COEF.at("ROTATE_ANGLE")));
-                //std::cout << "Rotate: otherwise\n";
                 break;
                 
             // Sheare
             case GLFW_KEY_X:
                 testModel->shear(TRANSFORM_COEF.at("SHEAR"), 0.0f);
-                //std::cout << "Shear: X-axis\n";
                 break;
             case GLFW_KEY_Y:
                 testModel->shear(0.0f, TRANSFORM_COEF.at("SHEAR"));
-                //std::cout << "Shear: Y-axis\n";
                 break;
 
-            // Scale
+            //Scale
             case GLFW_KEY_I:
-                testModel->scale(TRANSFORM_COEF.at("SCALE_IN"),1.f);
-                //std::cout << "Scale in\n";
+                testModel->scale(TRANSFORM_COEF.at("SCALE_IN"), 1.f);
                 break;
             case GLFW_KEY_J:
-                testModel->scale(TRANSFORM_COEF.at("SCALE_OUT"),1.f);
-                //std::cout << "Scale out\n";
+                testModel->scale(TRANSFORM_COEF.at("SCALE_OUT"), 1.f);
                 break;
                 
-            // Reflect
+            //Reflect
             case GLFW_KEY_R:
                 testModel->reflect(true, false);
-                //std::cout << "Reflect: X-axis\n";
                 break;
             case GLFW_KEY_F:
                 testModel->reflect(false, true);
-                //std::cout << "Reflect: Y-axis\n";
+                break;
+
+            //Reflect with axis
+            case GLFW_KEY_1:
+                testModel->reflectWithAxis(customPoint1, customPoint2, true, false);
+                break;
+            case GLFW_KEY_2:
+                testModel->reflectWithAxis(customPoint1, customPoint2, false, true);
+                break;
+            case GLFW_KEY_3:
+                testModel->reflectWithAxis(customPoint1, customPoint2, true, true);
+                break;
+            
+            //Scale with axis
+            case GLFW_KEY_4:
+                testModel->scaleWithAxis(customPoint1, customPoint2, 1.1f, 1.1f);
+                break;
+            case GLFW_KEY_5:
+                testModel->scaleWithAxis(customPoint1, customPoint2, 1.f, (1.f/1.1));
+                break;
+            case GLFW_KEY_6:
+                testModel->scaleWithAxis(customPoint1, customPoint2, 1.f, 1.1f);
+                break;
+            
+            //Shear with axis
+            case GLFW_KEY_7:
+                testModel->shearWithAxis(customPoint1, customPoint2, 
+                    -TRANSFORM_COEF.at("SHEAR"), 0.f);
+                break;
+            case GLFW_KEY_8:
+                testModel->shearWithAxis(customPoint1, customPoint2, 
+                    0.f, TRANSFORM_COEF.at("SHEAR"));
+                break;
+            case GLFW_KEY_9:
+                testModel->shearWithAxis(customPoint1, customPoint2, 
+                    TRANSFORM_COEF.at("SHEAR"), 0.f);
                 break;
                 
-            // Reset
             case GLFW_KEY_T:
                 testModel->resetTransformation();
-                //std::cout << "Reset all transformations\n";
                 break;
         }
     }
@@ -360,7 +356,6 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
     glm::vec2 screenPos(xpos, ypos);
 
     float coef = yoffset > 0 ? 1.1:0.9;
-    
     scene->handleZoom(coef, screenPos);
 }
 
@@ -376,4 +371,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     if (scene) {
         scene->getCamera().setViewport(width, height);
     }
+}
+
+std::ostream &operator<<(std::ostream &os, const glm::mat4 &mat)
+{
+    os << std::fixed;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            os << mat[i][j] << " ";
+        }
+        os << '\n';
+    }
+    return os;
 }
