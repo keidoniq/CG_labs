@@ -10,7 +10,7 @@ public:
     
     float x() const { return coords.x; }
     float y() const { return coords.y; }
-    float w() const { return coords.z; }
+    float z() const { return coords.z; }
 
     const glm::vec3& getHomogeneousCoordinates() const { return coords; }
 };
