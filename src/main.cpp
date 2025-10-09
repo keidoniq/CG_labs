@@ -11,6 +11,8 @@
 #include "Model2D.h"
 #include "Scene2D.h"
 
+std::string controlsInfo();
+std::ostream& operator<<(std::ostream& os, const glm::mat4& mat); //todo -> to custom matrix wrapper class
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -46,6 +48,8 @@ Vertices2D* originalVertices = nullptr;
 
 int main()
 {
+    std::cout << controlsInfo();
+
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -82,17 +86,6 @@ int main()
     scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
     scene->getCamera().updAxes();
 
-    //model for testing
-    // Vertices2D squareVertices;
-    // squareVertices.addVertex(-0.3f, 0.f);  // 0
-    // squareVertices.addVertex(-0.3f, 0.3f);   // 1
-    // squareVertices.addVertex(0.3f, 0.3f);    // 2
-    // squareVertices.addVertex(0.6f, 0.f);   // 3
-    // squareVertices.addVertex(0.6f, -0.3f);   // 4
-    // squareVertices.addVertex(0.6f, -0.6f);   // 5
-    // squareVertices.addVertex(0.3f, -0.9f);   // 6
-    // squareVertices.addVertex(0.f, -0.6f);   // 7
-
     Vertices2D convexPolygon;
     for (int i = 0; i < POLYGON_N_SIDES; ++i) {
         float angle = 2.0f * glm::pi<float>() * i / POLYGON_N_SIDES;
@@ -101,19 +94,7 @@ int main()
         convexPolygon.addVertex(x, y);
     }
 
-    //originalVertices = new Vertices2D(squareVertices);
     originalVertices = new Vertices2D(convexPolygon);
-
-    // Edges squareEdges;
-    // squareEdges.addEdge(0, 1);  
-    // squareEdges.addEdge(1, 2);
-    // squareEdges.addEdge(2, 3);
-    // squareEdges.addEdge(3, 4);
-    // squareEdges.addEdge(4, 5);
-    // squareEdges.addEdge(5, 6);
-    // squareEdges.addEdge(6, 7);
-    // squareEdges.addEdge(7, 0);
-    // squareEdges.addEdge(5, 7);
 
     Edges polygonEdges;
     for (int i = 0; i < POLYGON_N_SIDES - 1; ++i) {
@@ -122,7 +103,6 @@ int main()
     polygonEdges.addEdge(POLYGON_N_SIDES - 1, 0);
 
     //create model
-    //testModel = new Model2D(squareVertices, squareEdges);
     testModel = new Model2D(convexPolygon, polygonEdges);
     scene->addModel(*testModel);
 
@@ -135,15 +115,6 @@ int main()
     //gl wireframe rendering
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    std::cout << std::string(17, '=') << "\nControls\n"
-        << "W/A/S/D -> Translate up/down/right/left\n"
-        << "Q/E -> Rotate\n"
-        << "I/J -> Scale\n"
-        << "X/Y -> Shear\n"
-        << "R/F -> Reflect X/Y\n"
-        << "T -> Reset to Init\n"
-        << "ESC -> Exit.\n";
 
     glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
@@ -159,14 +130,30 @@ int main()
         // Apply any pending transformations
 
         //Upd projection matrix for shder
-        //TODO from main to camera -> think about mat4
-        //TODO projection - its purpose and doc
+        //TODO from main to camera
         projection = glm::ortho(
             scene->getCamera().getLeft(), 
             scene->getCamera().getRight(),
             scene->getCamera().getBottom(), 
             scene->getCamera().getTop()
         );
+        //done projection - its purpose and doc
+        // std::cout << "\nProjection\n" 
+        //     << projection << '\n';
+        // std::cout << "\nFrom camera\n"
+        //     << scene->getCamera().getProjectionMatrix() << '\n';
+        
+        // glm::vec4 coords = scene->getCamera().getViewport();
+        // for (int i = 0; i < coords.length(); i++) {
+        //     std::cout << coords[i] << ' ';
+        // }
+        // std::cout << '\n';
+        // glm::vec2 coords2 = scene->getCamera().worldToScreen(glm::vec2(0,0));
+        // for (int i = 0; i < coords2.length(); i++) {
+        //     std::cout << coords2[i] << ' ';
+        // }
+        // std::cout << '\n';
+
         triShader.setMat4("projection", projection);
         triShader.setMat4("view", view);
         triShader.setMat4("model", model);
@@ -191,11 +178,6 @@ int main()
 
         // edge indices
         std::vector<unsigned int> indices;
-        // const auto& edges = squareEdges.getEdges();
-        // for (const auto& edge : edges) {
-        //     indices.push_back(edge.first);
-        //     indices.push_back(edge.second);
-        // }
         for (unsigned int i = 0; i < transformedVertices.size(); ++i) {
             indices.push_back(i);
         }
@@ -249,17 +231,21 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     glfwGetCursorPos(window, &xpos, &ypos);
     glm::vec2 screenPos(xpos, ypos);
 
-    //TODO if -> switch
-    if (action == GLFW_PRESS) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            scene->handleMouseClick(screenPos, DragMode::Scene); // LMB → move scene
-        } 
-        else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-            scene->handleMouseClick(screenPos, DragMode::Model); // RMB → move model
-        }
-    } 
-    else if (action == GLFW_RELEASE) {
-        scene->handleMouseRelease();
+    //done if -> switch
+    switch (action) {
+        case GLFW_PRESS:
+            switch (button) {
+                case GLFW_MOUSE_BUTTON_LEFT:
+                    scene->handleMouseClick(screenPos, DragMode::Scene); // LMB → move scene
+                    break;
+                case GLFW_MOUSE_BUTTON_RIGHT:
+                    scene->handleMouseClick(screenPos, DragMode::Model); // RMB → move model
+                    break;
+            }
+            break;
+        case GLFW_RELEASE:
+            scene->handleMouseRelease();
+            break;
     }
 }
 
@@ -270,6 +256,31 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
         glm::vec2 screenPos(xpos, ypos);
         scene->handleMouseDrag(screenPos);
     }
+}
+
+std::string controlsInfo() {
+    std::stringstream ss;
+    ss << std::string(17, '=') << "\nControls\n"
+       << "W/A/S/D -> Translate up/down/right/left\n"
+       << "Q/E -> Rotate\n"
+       << "I/J -> Scale\n"
+       << "X/Y -> Shear\n"
+       << "R/F -> Reflect X/Y\n"
+       << "T -> Reset to Init\n"
+       << "ESC -> Exit.\n";
+    return ss.str();
+}
+
+std::ostream &operator<<(std::ostream &os, const glm::mat4 &mat)
+{
+    os << std::fixed;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            os << mat[i][j] << " ";
+        }
+        os << '\n';
+    }
+    return os;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -291,7 +302,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
             case GLFW_KEY_D:
                 testModel->translate(TRANSFORM_COEF.at("TRANSLATE"), 0.0f);
-                //std::cout << "Translate: Right\n";
                 break;
                 
             // Rotate
@@ -345,7 +355,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    //std::cout << "Scroll - Zoom\n";
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
     glm::vec2 screenPos(xpos, ypos);

@@ -72,4 +72,35 @@ public:
     float getTop() const { return T; }
     
     glm::vec4 getViewport() const { return glm::vec4(L, R, B, T); }
+    glm::mat4 getProjectionMatrix(float near = -1.f, float far  =  1.f) const {
+        /*
+            [ scaleX      0          0      translateX ]
+            [ 0         scaleY       0      translateY ]
+            [ 0           0       scaleZ    translateZ ]
+            [ 0           0          0           1     ]
+
+            [ 2/(R-L)      0          0      -(R+L)/(R-L) ]
+            [ 0         2/(T-B)       0      -(T+B)/(T-B) ]
+            [ 0           0        -2/(F-N)   -(F+N)/(F-N)]
+            [ 0           0           0          1        ]
+
+            [ 2/(R-L)      0          0      -(R+L)/(R-L) ]
+            [ 0         2/(T-B)       0      -(T+B)/(T-B) ]
+            [ 0           0          -1          0        ]
+            [ 0           0           0          1        ]
+        */
+        float fn = 1.f/(far - near);
+        float rl = 1.f/(R - L);
+        float tb = 1.f/(T - B);
+
+        glm::mat4 proj(1.0f);
+        proj[0][0] = 2.f * rl;
+        proj[3][0] = -(R + L) * rl;
+        proj[1][1] = 2.f * tb;
+        proj[3][1] = -(T + B) * tb;
+        proj[2][2] = -2.f * fn;
+        proj[3][2] = -(far + near) * fn;
+
+        return proj;
+    }
 };
