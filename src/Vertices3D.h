@@ -1,9 +1,9 @@
 #pragma once
-#include "HomogeneousCoordinates2D.h"
+#include "HomogeneousCoordinates3D.h"
 #include <glm/glm.hpp>
 #include <vector>
-//DONE VerticesMatrix
-using VerticesMatrix = std::vector<HomogeneousCoordinates2D>;
+
+using VerticesMatrix = std::vector<HomogeneousCoordinates3D>;
 
 class Vertices2D {
 private:
@@ -12,8 +12,8 @@ private:
 public:
     Vertices2D() {};
     
-    void addVertex(float x, float y){
-        verticesMatrix.push_back(HomogeneousCoordinates2D(x,y));
+    void addVertex(float x, float y, float z){
+        verticesMatrix.push_back(HomogeneousCoordinates3D(x,y,z));
     }
     
     VerticesMatrix getVertices() {
