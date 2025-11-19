@@ -5,12 +5,12 @@
 
 using VerticesMatrix = std::vector<HomogeneousCoordinates3D>;
 
-class Vertices2D {
+class Vertices {
 private:
     VerticesMatrix verticesMatrix;
     
 public:
-    Vertices2D() {};
+    Vertices() {};
     
     void addVertex(float x, float y, float z){
         verticesMatrix.push_back(HomogeneousCoordinates3D(x,y,z));
