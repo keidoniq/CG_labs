@@ -9,6 +9,7 @@
 #include "shaders/ShaderModule.h"
 #include "Model3D.h"
 #include "Scene3D.h"
+#include "ModelLoader.h"
 
 std::string controlsInfo();
 std::ostream& operator<<(std::ostream& os, const glm::mat4& mat); 
@@ -30,21 +31,14 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
     {1, 0, 0},
 };
 
-const std::map<std::string, float> TRANSFORM_COEF{
-    {"TRANSLATE", 0.05f}, {"SCALE", 0.1f},
-    {"ROTATE_ANGLE", 10}, {"SHEAR", 0.1f},
-    {"SCALE_IN", 2.f}, {"SCALE_OUT", 0.5f}, 
-};
-
-const float POLYGON_RADIUS = 0.4f;
-const unsigned int POLYGON_N_SIDES = 6;
-
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
+const std::string modelPath = "resourses/icosphere.obj";
 
 Scene3D* scene = nullptr;
 Model3D* testModel = nullptr;
 Vertices* originalVertices = nullptr;
+ModelLoader loader;
 
 int main()
 {
@@ -57,7 +51,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lab_01 - Model3D", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lab_02 - Model3D", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window\n";
@@ -87,31 +81,51 @@ int main()
     scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
     scene->getCamera().updAxes();
 
+    // Vertices cubeVertices;
+    // cubeVertices.addVertex(-0.5f, -0.5f, -0.5f); // 0
+    // cubeVertices.addVertex( 0.5f, -0.5f, -0.5f); // 1
+    // cubeVertices.addVertex( 0.5f,  0.5f, -0.5f); // 2
+    // cubeVertices.addVertex(-0.5f,  0.5f, -0.5f); // 3
+    // cubeVertices.addVertex(-0.5f, -0.5f,  0.5f); // 4
+    // cubeVertices.addVertex( 0.5f, -0.5f,  0.5f); // 5
+    // cubeVertices.addVertex( 0.5f,  0.5f,  0.5f); // 6
+    // cubeVertices.addVertex(-0.5f,  0.5f,  0.5f); // 7
+    // originalVertices = new Vertices(cubeVertices);
+
+    // Faces cubeFaces;
+    // cubeFaces.addFace(0, 1, 2); cubeFaces.addFace(0, 2, 3); // передняя
+    // cubeFaces.addFace(4, 5, 6); cubeFaces.addFace(4, 6, 7); // задняя
+    // cubeFaces.addFace(0, 1, 5); cubeFaces.addFace(0, 5, 4); // нижняя
+    // cubeFaces.addFace(2, 3, 7); cubeFaces.addFace(2, 7, 6); // верхняя
+    // cubeFaces.addFace(0, 3, 7); cubeFaces.addFace(0, 7, 4); // левая
+    // cubeFaces.addFace(1, 2, 6); cubeFaces.addFace(1, 6, 5); // правая
+
+    // Edges cubeEdges = cubeFaces.getEdgesFromFaces();
+    // std::vector<unsigned int> indices;
+    // for (const auto& edge : cubeEdges.getEdges()) {
+    //     indices.push_back(edge.getFirst());
+    //     indices.push_back(edge.getSecond());
+    // }
+    if (!loader.isLoad(modelPath)) {
+        std::cout << "Failed to load model: " << modelPath << std::endl;
+        return -1;
+    }
     Vertices cubeVertices;
-    cubeVertices.addVertex(-0.5f, -0.5f, -0.5f); // 0
-    cubeVertices.addVertex( 0.5f, -0.5f, -0.5f); // 1
-    cubeVertices.addVertex( 0.5f,  0.5f, -0.5f); // 2
-    cubeVertices.addVertex(-0.5f,  0.5f, -0.5f); // 3
-    cubeVertices.addVertex(-0.5f, -0.5f,  0.5f); // 4
-    cubeVertices.addVertex( 0.5f, -0.5f,  0.5f); // 5
-    cubeVertices.addVertex( 0.5f,  0.5f,  0.5f); // 6
-    cubeVertices.addVertex(-0.5f,  0.5f,  0.5f); // 7
+    for (const auto& vertex : loader.vCoordinates) {
+        cubeVertices.addVertex(vertex.x, vertex.y, vertex.z);
+    }
     originalVertices = new Vertices(cubeVertices);
-
     Faces cubeFaces;
-    cubeFaces.addFace(0, 1, 2); cubeFaces.addFace(0, 2, 3); // передняя
-    cubeFaces.addFace(4, 5, 6); cubeFaces.addFace(4, 6, 7); // задняя
-    cubeFaces.addFace(0, 1, 5); cubeFaces.addFace(0, 5, 4); // нижняя
-    cubeFaces.addFace(2, 3, 7); cubeFaces.addFace(2, 7, 6); // верхняя
-    cubeFaces.addFace(0, 3, 7); cubeFaces.addFace(0, 7, 4); // левая
-    cubeFaces.addFace(1, 2, 6); cubeFaces.addFace(1, 6, 5); // правая
-
+    for (const auto& faceIndices : loader.fIndicesTrn) {
+        cubeFaces.addFace(faceIndices[0], faceIndices[3], faceIndices[6]);
+    }
     Edges cubeEdges = cubeFaces.getEdgesFromFaces();
     std::vector<unsigned int> indices;
     for (const auto& edge : cubeEdges.getEdges()) {
         indices.push_back(edge.getFirst());
         indices.push_back(edge.getSecond());
     }
+
     //create model
     testModel = new Model3D(cubeVertices, cubeFaces, cubeEdges);
     scene->addModel(*testModel);
@@ -315,13 +329,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 
             // Rotate
             case GLFW_KEY_Q:
-                testModel->rotate(glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE")), Axis::Y);
+                testModel->rotate(glm::radians(15.0), Axis::Y);
                 break;
             case GLFW_KEY_E:
-                testModel->rotate(glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE")), Axis::X);
+                testModel->rotate(glm::radians(15.0), Axis::X);
                 break;
             case GLFW_KEY_R:
-                testModel->rotate(glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE")), Axis::Z);
+                testModel->rotate(glm::radians(15.0), Axis::Z);
                 break;
                 
             // Shear
