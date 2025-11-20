@@ -1,6 +1,6 @@
 #pragma once
 #include "FaceStruct.h"
-#include "EdgeStruct.h"
+#include "Edges.h"
 #include <vector>
 #include <set>
 
@@ -16,5 +16,5 @@ public:
     void clear();
     
     const std::set<FaceStruct>& getFaces() const { return faces; }
-    std::set<EdgeStruct> getEdgesFromFaces() const;
+    Edges getEdgesFromFaces() const;
 };

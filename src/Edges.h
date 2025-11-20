@@ -17,5 +17,7 @@ public:
     bool delEdge(EdgeStruct e);
     void clear();
     
+    
+    void setEdges(std::set<EdgeStruct>& otherEdges) { edges = otherEdges; }
     const std::set<EdgeStruct>& getEdges() const { return edges; }
 };

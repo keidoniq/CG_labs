@@ -1,21 +1,21 @@
-#include "Scene2D.h"
+#include "Scene3D.h"
 
-void Scene2D::addModel(Model2D& model) {
+void Scene3D::addModel(Model3D& model) {
     models.push_back(&model);
 }
 
-void Scene2D::updModels() const
+void Scene3D::updModels() const
 {
     for(auto m: models){
         m->applyTransformation();
     }
 }
 
-void Scene2D::clearModels() {
+void Scene3D::clearModels() {
     models.clear();
 }
 
-void Scene2D::render() const {
+void Scene3D::render() const {
     camera.clear();
     camera.drawAxes();
 
@@ -24,9 +24,12 @@ void Scene2D::render() const {
     }
 }
 
-void Scene2D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode) {
+void Scene3D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode) {
     dragMode = newDragMode;
-    glm::vec2 worldPos = camera.screenToWorld(screenPos);
+    glm::vec3 worldPos = camera.screenToWorld_GLM(screenPos);
+    std::cout << "Mouse click - Screen: (" << screenPos.x << ", " << screenPos.y 
+              << ") World: (" << worldPos.x << ", " << worldPos.y << ", " << worldPos.z << ")" << std::endl;
+              
     switch(dragMode){
         case DragMode::Model:
             if(!models.empty())
@@ -41,8 +44,8 @@ void Scene2D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode)
     }
 }
 
-void Scene2D::handleMouseDrag(const glm::vec2& screenPos) {
-    glm::vec2 worldPos = camera.screenToWorld(screenPos);
+void Scene3D::handleMouseDrag(const glm::vec2& screenPos) {
+    glm::vec3 worldPos = camera.screenToWorld_GLM(screenPos);
 
     switch(dragMode){
         case DragMode::Model:
@@ -58,7 +61,7 @@ void Scene2D::handleMouseDrag(const glm::vec2& screenPos) {
     }
 }
 
-void Scene2D::handleMouseRelease() {
+void Scene3D::handleMouseRelease() {
     switch(dragMode){
         case DragMode::Model:
             models[0]->endDrag();
@@ -72,7 +75,7 @@ void Scene2D::handleMouseRelease() {
     dragMode = DragMode::None;
 }
 
-void Scene2D::handleZoom(float factor, const glm::vec2& screenPos) {
-    glm::vec2 worldPos = camera.screenToWorld(screenPos);
+void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {
+    glm::vec3 worldPos = camera.screenToWorld_GLM(screenPos);
     camera.zoom(factor, worldPos);
 }

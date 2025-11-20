@@ -20,13 +20,13 @@ void Faces::clear() {
     faces.clear();
 }
 
-std::set<EdgeStruct> Faces::getEdgesFromFaces() const {
-    std::set<EdgeStruct> edges;
+Edges Faces::getEdgesFromFaces() const {
+    Edges edges = Edges();
     
     for (const auto& face : faces) {
-        edges.emplace(face.getV1(), face.getV2());
-        edges.emplace(face.getV2(), face.getV3());
-        edges.emplace(face.getV1(), face.getV3());
+        edges.addEdge(face.getV1(), face.getV2());
+        edges.addEdge(face.getV2(), face.getV3());
+        edges.addEdge(face.getV1(), face.getV3());
     }
     
     return edges;
