@@ -32,9 +32,6 @@ inline bool ModelLoader::isLoad(const std::string& path){
         std::cout << "File might not exist or permission denied" << std::endl;
         return false;
     }
-    else {
-        std::cout << "SUCCESS: File opened: " << path << std::endl;
-    }
 
     std::string identifier;
     std::string parseData;
@@ -91,7 +88,7 @@ inline bool ModelLoader::isLoad(const std::string& path){
     
     input_data.close();
     
-    std::cout << "Loaded: " << vertexCount << " vertices, " << faceCount << " faces" << std::endl;
+    //std::cout << "Loaded: " << vertexCount << " vertices, " << faceCount << " faces" << std::endl;
     
     if (vertexCount == 0 || faceCount == 0) {
         std::cout << "ERROR: No vertices or faces loaded - file might be empty or corrupt" << std::endl;
