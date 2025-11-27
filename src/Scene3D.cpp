@@ -4,6 +4,11 @@ void Scene3D::addModel(Model3D& model) {
     models.push_back(&model);
 }
 
+void Scene3D::toNextModel()
+{
+    iCurrModel = (iCurrModel + 1) % models.size();
+}
+
 void Scene3D::updModels() const
 {
     for(auto m: models){
@@ -33,7 +38,7 @@ void Scene3D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode)
     switch(dragMode){
         case DragMode::Model:
             if(!models.empty())
-                models[0]->startDrag(worldPos);
+                models[iCurrModel]->startDrag(worldPos);
             break;
         case DragMode::Scene:
             camera.startDrag(worldPos);
@@ -50,7 +55,7 @@ void Scene3D::handleMouseDrag(const glm::vec2& screenPos) {
     switch(dragMode){
         case DragMode::Model:
             if(!models.empty())
-                models[0]->drag(worldPos);
+                models[iCurrModel]->drag(worldPos);
             break;
         case DragMode::Scene:
             camera.drag(worldPos);
@@ -64,7 +69,7 @@ void Scene3D::handleMouseDrag(const glm::vec2& screenPos) {
 void Scene3D::handleMouseRelease() {
     switch(dragMode){
         case DragMode::Model:
-            models[0]->endDrag();
+            models[iCurrModel]->endDrag();
             break;
         case DragMode::Scene:
             camera.endDrag();

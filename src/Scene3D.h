@@ -20,13 +20,16 @@ class Scene3D {
 private:
     Camera3D camera;
     std::vector<Model3D*> models;
+    int iCurrModel = 0;
     DragMode dragMode;
 
 public:
     Scene3D(): camera() { dragMode = DragMode::None; }
     
     void addModel(Model3D& model);
+    void toNextModel();
     void clearModels();
+    Model3D* getCurrModel() { return models[iCurrModel];}
     Camera3D& getCamera() { return camera; }
     
     void render() const;
@@ -36,4 +39,11 @@ public:
     void handleMouseDrag(const glm::vec2& screenPos);
     void handleMouseRelease();
     void handleZoom(float factor, const glm::vec2& screenPos);
+
+    int getModelsSize(){
+        return models.size();
+    }
+    int getiCurrModel(){
+        return iCurrModel;
+    }
 };
