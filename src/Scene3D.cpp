@@ -29,58 +29,14 @@ void Scene3D::render() const {
     }
 }
 
-void Scene3D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode) {
-    dragMode = newDragMode;
-    glm::vec3 worldPos = camera.screenToWorld_GLM(screenPos);
-    std::cout << "Mouse click - Screen: (" << screenPos.x << ", " << screenPos.y 
-              << ") World: (" << worldPos.x << ", " << worldPos.y << ", " << worldPos.z << ")" << std::endl;
-              
-    switch(dragMode){
-        case DragMode::Model:
-            if(!models.empty())
-                models[iCurrModel]->startDrag(worldPos);
-            break;
-        case DragMode::Scene:
-            camera.startDrag(worldPos);
-            break;
-        case DragMode::None:
-        default:
-            break;
-    }
+void Scene3D::handleMouseClick(const glm::vec2& screenPos) {
 }
 
-void Scene3D::handleMouseDrag(const glm::vec2& screenPos) {
-    glm::vec3 worldPos = camera.screenToWorld_GLM(screenPos);
-
-    switch(dragMode){
-        case DragMode::Model:
-            if(!models.empty())
-                models[iCurrModel]->drag(worldPos);
-            break;
-        case DragMode::Scene:
-            camera.drag(worldPos);
-            break;
-        case DragMode::None:
-        default:
-            break;
-    }
-}
 
 void Scene3D::handleMouseRelease() {
-    switch(dragMode){
-        case DragMode::Model:
-            models[iCurrModel]->endDrag();
-            break;
-        case DragMode::Scene:
-            camera.endDrag();
-            break;
-        case DragMode::None:default:
-        break;
-    }
-    dragMode = DragMode::None;
 }
 
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {
-    glm::vec3 worldPos = camera.screenToWorld_GLM(screenPos);
-    camera.zoom(factor, worldPos);
+    glm::vec2 projPos = camera.screenToProj(screenPos);
+    camera.zoom(factor, projPos);
 }

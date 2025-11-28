@@ -12,7 +12,9 @@
 #include "ModelLoader.h"
 
 std::string controlsInfo();
-std::ostream& operator<<(std::ostream& os, const glm::mat4& mat); 
+std::ostream& operator<<(std::ostream& os, const glm::mat4& mat);
+std::ostream &operator<<(std::ostream &os, const glm::vec4 &vec);
+std::ostream &operator<<(std::ostream &os, const glm::vec3 &vec);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -24,8 +26,8 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
+    {0.5, 0, 0.5},
     {0, 0, 0},
-    {1, 1, 1},
     {0, 0, 1},
     {0, 1, 0},
     {1, 0, 0},
@@ -33,16 +35,25 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
 
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
-const std::string modelPath = "resourses/icosphere.obj";
+const std::vector<std::string> modelPaths = {
+    "resourses/torusknot.obj",
+    "resourses/star.obj",
+    "resourses/cube.obj",
+    "resourses/gem.obj",
+    "resourses/gear.obj",
+    "resourses/icosphere.obj",
+    "resourses/cylinder.obj",
+    "resourses/cone.obj",
+    "resourses/teapot.obj",
+};
 
 Scene3D* scene = nullptr;
-Model3D* testModel = nullptr;
+Model3D* currModel = nullptr;
 Vertices* originalVertices = nullptr;
 ModelLoader loader;
 
 int main()
 {
-    std::cout << controlsInfo();
 
     // glfw: initialize and configure
     glfwInit();
@@ -51,7 +62,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lab_02 - Model3D", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Model3D", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window\n";
@@ -75,60 +86,35 @@ int main()
 
     // build and compile shader program
     ShaderModule triShader(VSHADER_PATH, FSHADER_PATH);
+    std::cout << controlsInfo();
 
     //scene create
     scene = new Scene3D();
     scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
     scene->getCamera().updAxes();
 
-    // Vertices cubeVertices;
-    // cubeVertices.addVertex(-0.5f, -0.5f, -0.5f); // 0
-    // cubeVertices.addVertex( 0.5f, -0.5f, -0.5f); // 1
-    // cubeVertices.addVertex( 0.5f,  0.5f, -0.5f); // 2
-    // cubeVertices.addVertex(-0.5f,  0.5f, -0.5f); // 3
-    // cubeVertices.addVertex(-0.5f, -0.5f,  0.5f); // 4
-    // cubeVertices.addVertex( 0.5f, -0.5f,  0.5f); // 5
-    // cubeVertices.addVertex( 0.5f,  0.5f,  0.5f); // 6
-    // cubeVertices.addVertex(-0.5f,  0.5f,  0.5f); // 7
-    // originalVertices = new Vertices(cubeVertices);
+    for (auto modelPath: modelPaths){
+        if (!loader.isLoad(modelPath)) {
+            std::cout << "Failed to load model: " << modelPath << std::endl;
+            return -1;
+        }
 
-    // Faces cubeFaces;
-    // cubeFaces.addFace(0, 1, 2); cubeFaces.addFace(0, 2, 3); // передняя
-    // cubeFaces.addFace(4, 5, 6); cubeFaces.addFace(4, 6, 7); // задняя
-    // cubeFaces.addFace(0, 1, 5); cubeFaces.addFace(0, 5, 4); // нижняя
-    // cubeFaces.addFace(2, 3, 7); cubeFaces.addFace(2, 7, 6); // верхняя
-    // cubeFaces.addFace(0, 3, 7); cubeFaces.addFace(0, 7, 4); // левая
-    // cubeFaces.addFace(1, 2, 6); cubeFaces.addFace(1, 6, 5); // правая
+        Vertices modelVertices;
+        for (const auto& vertex : loader.vCoordinates) {
+            modelVertices.addVertex(vertex.x, vertex.y, vertex.z);
+        }
 
-    // Edges cubeEdges = cubeFaces.getEdgesFromFaces();
-    // std::vector<unsigned int> indices;
-    // for (const auto& edge : cubeEdges.getEdges()) {
-    //     indices.push_back(edge.getFirst());
-    //     indices.push_back(edge.getSecond());
-    // }
-    if (!loader.isLoad(modelPath)) {
-        std::cout << "Failed to load model: " << modelPath << std::endl;
-        return -1;
-    }
-    Vertices cubeVertices;
-    for (const auto& vertex : loader.vCoordinates) {
-        cubeVertices.addVertex(vertex.x, vertex.y, vertex.z);
-    }
-    originalVertices = new Vertices(cubeVertices);
-    Faces cubeFaces;
-    for (const auto& faceIndices : loader.fIndicesTrn) {
-        cubeFaces.addFace(faceIndices[0], faceIndices[3], faceIndices[6]);
-    }
-    Edges cubeEdges = cubeFaces.getEdgesFromFaces();
-    std::vector<unsigned int> indices;
-    for (const auto& edge : cubeEdges.getEdges()) {
-        indices.push_back(edge.getFirst());
-        indices.push_back(edge.getSecond());
-    }
+        Faces modelFaces;
+        for (const auto& faceIndices : loader.fIndicesTrn) {
+            modelFaces.addFace(faceIndices[0], faceIndices[3], faceIndices[6]);
+        }
 
-    //create model
-    testModel = new Model3D(cubeVertices, cubeFaces, cubeEdges);
-    scene->addModel(*testModel);
+        Edges modelEdges = modelFaces.getEdgesFromFaces();
+
+        Model3D* newModel = new Model3D(modelVertices, modelFaces, modelEdges);
+        scene->addModel(*newModel);
+    }
+    currModel = scene->getCurrModel();
 
     //setup buffers
     unsigned int VBO, VAO, EBO;
@@ -138,21 +124,22 @@ int main()
 
     //gl wireframe rendering
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
+    std::cout << "Before render loop:\t" << scene->getiCurrModel() << scene->getCurrModel() <<'\n';
 
     // render loop
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-        //testModel->applyTransformation();
         triShader.bind();
 
         //Upd for shader
-        projection = scene->getCamera().getProjectionMatrix();
+        currModel = scene->getCurrModel();
+        projection = scene->getCamera().getNormProjectionMatrix();
         view = scene->getCamera().getViewMatrix();
 
         triShader.setMat4("projection", projection);
@@ -160,21 +147,28 @@ int main()
         triShader.setMat4("model", model);
 
         // Get the transformed vertices for rendering
-        Vertices currentVertices = testModel->getVertices();
+        Vertices currentVertices = currModel->getVertices();
+        //std::cout << "\nVertices:\t" << scene->getiCurrModel() << '\n';
         VerticesMatrix transformedVertices = currentVertices.getVertices();
-
+        std::vector<unsigned int> indices;
+        //std::cout << "\nIndices:\t" << scene->getiCurrModel() << '\n';
+        for (auto edge : currModel->getEdges().getEdges()) {
+            indices.push_back(edge.getFirst());
+            indices.push_back(edge.getSecond());
+        }
+        std::vector<unsigned int> faceIndices;
+        for (const auto& face : currModel->getFaces().getFaces()) {
+            faceIndices.push_back(face.getV1());
+            faceIndices.push_back(face.getV2());
+            faceIndices.push_back(face.getV3());
+        }
         //vertex data for OpenGL
-        int i = 0;
         std::vector<float> vertices;
         for (const auto& vertex : transformedVertices) {
             vertices.push_back(vertex.x());
             vertices.push_back(vertex.y());
             vertices.push_back(vertex.z());
             
-            //colors
-            // int id_colour = i % COLOURS_TO_PICK.size();
-            // vertices.insert(vertices.end(),COLOURS_TO_PICK[id_colour].begin(),COLOURS_TO_PICK[id_colour].end());
-            // ++i;
             vertices.insert(vertices.end(), COLOURS_TO_PICK[0].begin(), COLOURS_TO_PICK[0].end());
         }
 
@@ -186,6 +180,8 @@ int main()
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, faceIndices.size() * sizeof(unsigned int), faceIndices.data(), GL_DYNAMIC_DRAW);
+
 
         // position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -194,13 +190,14 @@ int main()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
         // render
-        glClearColor(0.91, 0.92, 0.95, 0.94f);
+        glClearColor(0.87, 0.87, 0.87, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         scene->render();
         // render model
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_TRIANGLES, faceIndices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
         triShader.release();
 
         // glfw: swap buffers
@@ -210,7 +207,7 @@ int main()
 
     //clear
     delete scene;
-    delete testModel;
+    delete currModel;
     delete originalVertices;
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -230,10 +227,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         case GLFW_PRESS:
             switch (button) {
                 case GLFW_MOUSE_BUTTON_LEFT:
-                    scene->handleMouseClick(screenPos, DragMode::Scene); // LMB → move scene
+                    //todo
                     break;
                 case GLFW_MOUSE_BUTTON_RIGHT:
-                    scene->handleMouseClick(screenPos, DragMode::Model); // RMB → move model
+                    //todo
+                    scene->handleMouseClick(screenPos); // RMB → move model
                     break;
             }
             break;
@@ -248,7 +246,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS ||
         glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         glm::vec2 screenPos(xpos, ypos);
-        scene->handleMouseDrag(screenPos);
+        //todo
     }
 }
 
@@ -259,25 +257,18 @@ std::string controlsInfo() {
        << "  W - Move Up (Y+)\n"
        << "  S - Move Down (Y-)\n" 
        << "  A - Move Left (X-)\n"
-       << "  D - Move Right (X+)\n"
-       << "  Z - Move Back (Z-)\n"
+       << "  Q - Move Right (X+)\n"
+       << "  E - Move Back (Z-)\n"
        << "  C - Move Forward (Z+)\n\n"
        
        << "ROTATION:\n"
-       << "  Q - Rotate around Y axis\n"
-       << "  E - Rotate around X axis\n"
-       << "  R - Rotate around Z axis\n\n"
-       
-       << "SHEAR (Skew):\n"
-       << "  X - Shear X axis\n"
-       << "  Y - Shear Y axis\n"
-       << "  V - Shear Z axis\n\n"
+       << "  Y - Rotate around Y axis\n"
+       << "  X - Rotate around X axis\n"
+       << "  Z - Rotate around Z axis\n\n"
        
        << "SCALING:\n"
-       << "  I - Scale Uniform IN (2x)\n"
-       << "  J - Scale Uniform OUT (0.5x)\n"
-       << "  K - Scale Z axis OUT (0.5x)\n"
-       << "  L - Scale Z axis IN (2x)\n\n"
+       << "  I - Scale IN\n"
+       << "  J - Scale OUT\n\n"
 
        << "REFLECTION (Mirror):\n"
        << "  1 - Reflect X axis\n"
@@ -285,15 +276,23 @@ std::string controlsInfo() {
        << "  3 - Reflect Z axis\n"
        << "  4 - Reflect XY plane\n"
        << "  5 - Reflect XZ plane\n"
-       << "  6 - Reflect YZ plane\n"
-       << "  7 - Reflect all axes (XYZ)\n\n"
+       << "  6 - Reflect YZ plane\n\n"
+
+       << "CAMERA MOVEMENT:\n"
+       << "  Arrow Up - Move camera forward\n"
+       << "  Arrow Down - Move camera backward\n" 
+       << "  Arrow Left - Move camera left\n"
+       << "  Arrow Right - Move camera right\n"
+       << "  U - Move camera up\n"
+       << "  D - Move camera down\n\n"
        
        << "SYSTEM:\n"
+       << "  N - Go to the next model\n"
        << "  T - Reset all model transformations\n"
        << "  P - Reset camera to default position\n"
        << "  Mouse Wheel - Zoom in/out\n"
-       << "  LMB + Drag - Move scene\n"
-       << "  RMB + Drag - Move model\n"
+    //    << "  LMB + Drag - Move scene\n"
+    //    << "  RMB + Drag - Move model\n"
        << "  ESC -> Exit.\n";
     return ss.str();
 }
@@ -306,91 +305,113 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     // glm::vec2 customPoint2 = verticesMatrix[3].getCartesianCoordinates();
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        //std::cout << "\nIn switch:\t" << scene->getiCurrModel() << '\n';
+        Camera3D& camera = scene->getCamera(); // Get camera reference
+        float moveSpeed = 0.5f;
         switch (key) {
-            // Translate
-            case GLFW_KEY_W:
-                testModel->translate(0.0f, 0.5f, 0.0f);
+            // CAMERA MOVEMENT CONTROLS
+            case GLFW_KEY_H: // Rotate camera left
+                camera.rotateAroundFocus(glm::radians(10.0f), glm::radians(0.0f));
                 break;
-            case GLFW_KEY_S:
-                testModel->translate(0.0f, -0.5f, 0.0f);
+            case GLFW_KEY_V: // Rotate camera left
+                camera.rotateAroundFocus(glm::radians(0.0f), glm::radians(10.0f));
                 break;
-            case GLFW_KEY_A:
-                testModel->translate(-0.5f, 0.0f, 0.0f);
+            case GLFW_KEY_UP:
+                camera.moveForward(moveSpeed);
+                std::cout << "forward\n";
+                break;
+            case GLFW_KEY_DOWN:
+                camera.moveBackward(moveSpeed);
+                std::cout << "back\n";
+                break;
+            case GLFW_KEY_LEFT:
+                camera.moveLeft(moveSpeed);
+                std::cout << "left\n";
+                break;
+            case GLFW_KEY_RIGHT:
+                camera.moveRight(moveSpeed);
+                std::cout << "right\n";
+                break;
+            case GLFW_KEY_U:
+                camera.moveUp(moveSpeed);
+                std::cout << "up\n";
                 break;
             case GLFW_KEY_D:
-                testModel->translate(0.5f, 0.0f, 0.0f);
+                camera.moveDown(moveSpeed);
+                std::cout << "down\n";
                 break;
-            case GLFW_KEY_Z:
-                testModel->translate(0.0f, 0.0f, -0.5f);
+            // Translate
+            case GLFW_KEY_W:
+                currModel->translate(0.0f, 0.5f, 0.0f);
+                break;
+            case GLFW_KEY_S:
+                currModel->translate(0.0f, -0.5f, 0.0f);
+                break;
+            case GLFW_KEY_A:
+                currModel->translate(-0.5f, 0.0f, 0.0f);
+                break;
+            case GLFW_KEY_Q:
+                currModel->translate(0.5f, 0.0f, 0.0f);
+                break;
+            case GLFW_KEY_E:
+                currModel->translate(0.0f, 0.0f, -0.5f);
                 break;
             case GLFW_KEY_C:
-                testModel->translate(0.0f, 0.0f, 0.5f);
+                currModel->translate(0.0f, 0.0f, 0.5f);
                 break;
                 
             // Rotate
-            case GLFW_KEY_Q:
-                testModel->rotate(glm::radians(15.0), Axis::Y);
-                break;
-            case GLFW_KEY_E:
-                testModel->rotate(glm::radians(15.0), Axis::X);
-                break;
-            case GLFW_KEY_R:
-                testModel->rotate(glm::radians(15.0), Axis::Z);
-                break;
-                
-            // Shear
-            case GLFW_KEY_X:
-                testModel->shear(0.1f, 0.0f, 0.0f);
-                break;
             case GLFW_KEY_Y:
-                testModel->shear(0.0f, 0.1f, 0.f);
+                currModel->rotate(glm::radians(15.0), Axis::Y);
                 break;
-            case GLFW_KEY_V:
-                testModel->shear(0.0f, 0.f, 0.1f);
+            case GLFW_KEY_X:
+                currModel->rotate(glm::radians(15.0), Axis::X);
+                break;
+            case GLFW_KEY_Z:
+                currModel->rotate(glm::radians(15.0), Axis::Z);
                 break;
 
             //Scale
             case GLFW_KEY_I:
-                testModel->scale(2.f, 2.f, 2.f);
+                currModel->scale(2.f, 2.f, 2.f);
                 break;
             case GLFW_KEY_J:
-                testModel->scale(0.5f, 0.5f, 0.5f);
-                break;
-            case GLFW_KEY_K:
-                testModel->scale(1.0f, 1.0f, 0.5f);
-                break;
-            case GLFW_KEY_L:
-                testModel->scale(1.0f, 1.0f, 2.f); // Scale только по Z
+                currModel->scale(0.5f, 0.5f, 0.5f);
                 break;
                 
             //Reflect
             case GLFW_KEY_1:
-                testModel->reflect(true, false, false); // Reflect X
+                currModel->reflect(true, false, false); // Reflect X
                 break;
             case GLFW_KEY_2:
-                testModel->reflect(false, true, false); // Reflect Y
+                currModel->reflect(false, true, false); // Reflect Y
                 break;
             case GLFW_KEY_3:
-                testModel->reflect(false, false, true); // Reflect Z
+                currModel->reflect(false, false, true); // Reflect Z
                 break;
             case GLFW_KEY_4:
-                testModel->reflect(true, true, false); // Reflect XY
+                currModel->reflect(true, true, false); // Reflect XY
                 break;
             case GLFW_KEY_5:
-                testModel->reflect(true, false, true); // Reflect XZ
+                currModel->reflect(true, false, true); // Reflect XZ
                 break;
             case GLFW_KEY_6:
-                testModel->reflect(false, true, true); // Reflect YZ
-                break;
-            case GLFW_KEY_7:
-                testModel->reflect(true, true, true); // Reflect XYZ
+                currModel->reflect(false, true, true); // Reflect YZ
                 break;
                 
             case GLFW_KEY_T:
-                testModel->resetTransformation();
+                currModel->resetTransformation();
                 break;
             case GLFW_KEY_P:
                 scene->getCamera().resetCamera();
+                break;
+            case GLFW_KEY_N:
+                scene->toNextModel();
+                currModel = scene->getCurrModel();
+                std::cout << "Switched to model index: " << scene->getiCurrModel() 
+                    << " out of " << scene->getNModels() 
+                    << " models. Model address: " << currModel << std::endl;
+
                 break;
         }
     }
@@ -429,5 +450,15 @@ std::ostream &operator<<(std::ostream &os, const glm::mat4 &mat)
         }
         os << '\n';
     }
+    return os;
+}
+std::ostream &operator<<(std::ostream &os, const glm::vec4 &vec)
+{
+    os << vec.x << ' ' << vec.y << ' ' << vec.z << ' ' << vec.w << '\n';
+    return os;
+}
+std::ostream &operator<<(std::ostream &os, const glm::vec3 &vec)
+{
+    os << vec.x << ' ' << vec.y << ' ' << vec.z << '\n';
     return os;
 }

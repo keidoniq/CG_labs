@@ -27,109 +27,128 @@ class Camera3D {
 private:
     GLuint axisVAO = 0, axisVBO = 0;
 
-    float aspectRatio;
-    float L, R, B, T;
+    float m_aspectRatio;
+    glm::vec3 O_vector, N_vector, T_vector;
+    float F, D;
     int W, H;
 
-    glm::vec3 position;
-    glm::vec3 target;
-    glm::vec3 up;
-    float fov;
-    float F, N;
+    float L, R, B, T;
 
-    bool isDragging;
-    glm::vec3 dragStartWorld;
-    glm::vec3 dragStartPosition;
-    glm::vec3 dragStartTarget;
-    std::map<std::string, float> startBounds;
-
-    void updStartBounds(float startL, float startR, float startT, float startB);
     void maintainAspectRatio();
-    
-    float readDepthBuffer(const glm::vec2& screenPos) const {
-        float depth;
-        glReadPixels(
-            (GLint)screenPos.x, 
-            (GLint)(H - screenPos.y),
-            1, 1, 
-            GL_DEPTH_COMPONENT, 
-            GL_FLOAT, 
-            &depth
-        );
-        return depth;
-    }
 public:
     Camera3D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, float B = -DEFAULT_DIST, float T = DEFAULT_DIST, 
         int W = 800, int H = 600, bool isDragging = false,
-        glm::vec3 position = glm::vec3(0.f, 0.f, DEFAULT_DIST),
-        glm::vec3 target = glm::vec3(0.f),
-        glm::vec3 up = glm::vec3(0.f, 1.f, 0.f),
-        float fov = 45.0f, float nearPlane = 0.1f, float farPlane = 100.0f):
-        L(L), R(R), B(B), T(T), W(W), H(H), isDragging(isDragging),
-        position(position), target(target), up(up), 
-        fov(fov), N(nearPlane), F(farPlane) {
-            startBounds.emplace("L", L);
-            startBounds.emplace("R", R);
-            startBounds.emplace("B", B);
-            startBounds.emplace("T", T);
+        glm::vec3 O_vector = glm::vec3(0.f, 0.f, 2.5f),
+        glm::vec3 N_vector = glm::vec3(0.f, 0.f, -3.f),
+        glm::vec3 T_vector = glm::vec3(0.f, 1.f, 0.f),
+        float distance = 15.f, float f = 5.f):
+        L(L), R(R), B(B), T(T), W(W), H(H), D(distance), F(f),
+        O_vector(O_vector), N_vector(N_vector), T_vector(T_vector) {
+
             glGenVertexArrays(1, &axisVAO);
             glGenBuffers(1, &axisVBO);
     };
     ~Camera3D();
     
-    void zoom(float factor, const glm::vec3& worldPoint);
-    void startDrag(const glm::vec3& worldPos);
-    void drag(const glm::vec3& worldPos);
-    void endDrag();
+    void zoom(float factor, const glm::vec2& screenPoint);
 
     float getLeft() const { return L; }
     float getRight() const { return R; }
     float getBottom() const { return B; }
     float getTop() const { return T; }
-    glm::vec3 getPosition() const { return position; }
-    glm::vec3 getTarget() const { return target; }
-    glm::vec3 getUp() const { return up; }
-    float getFOV() const { return fov; }
+    glm::vec4 getViewport() const { return glm::vec4(L, R, B, T); }
     
     void clear() const;
     void resetCamera();
+    void setViewport(int width, int height);
 
     void updAxes();
     void drawAxes() const;
-    
-    void setViewport(int width, int height);
-    glm::vec4 getViewport() const { return glm::vec4(L, R, B, T); }
-    glm::mat4 getViewMatrix() const {//из мировых в видовые
-        return glm::lookAt(position, target, up);
-    }
-    glm::mat4 getProjectionMatrix() const {//перспективная проекции
-        return glm::perspective(glm::radians(fov), aspectRatio, N, F);
-    }
 
-    glm::vec3 screenToWorld_GLM(const glm::vec2& screenPos) const {
-        glm::mat4 view = getViewMatrix();
-        glm::mat4 projection = getProjectionMatrix();
-        glm::vec4 viewport(0.0f, 0.0f, W, H);
-        float depth = readDepthBuffer(screenPos);
+    
+    void moveForward(float distance) {
+        O_vector += N_vector * distance;
+    }
+    void moveBackward(float distance) {
+        moveForward(-distance);
+    }
+    void moveLeft(float distance) {
+        glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
+        O_vector += right * distance;
+    }
+    void moveRight(float distance) {
+        moveLeft(-distance);
+    }
+    void moveUp(float distance) {
+        O_vector += T_vector * distance;
+    }
+    void moveDown(float distance) {
+        moveUp(-distance);
+    }
+    
+    glm::mat4 getViewMatrix () const {//из мировых в видовые
+        glm::vec3 k = glm::normalize(N_vector);
+        glm::vec3 i = glm::normalize(glm::cross(T_vector, N_vector));
+        glm::vec3 j = glm::normalize(glm::cross(k, i));
         
-        return glm::unProject(
-            glm::vec3(screenPos.x, H - screenPos.y, depth),
-            view,
-            projection,
-            viewport
+        return glm::mat4(
+            glm::vec4(i.x, j.x, k.x, 0.f),
+            glm::vec4(i.y, j.y, k.y, 0.f), 
+            glm::vec4(i.z, j.z, k.z, 0.f),
+            glm::vec4(-glm::dot(i, O_vector),  
+                      -glm::dot(j, O_vector),  
+                      glm::dot(k, O_vector),  
+                      1.f)                      
         );
     }
-    glm::vec3 worldToScreen_GLM(const glm::vec3& worldPos) const {
-        glm::mat4 view = getViewMatrix();
-        glm::mat4 projection = getProjectionMatrix();
-        glm::vec4 viewport(0.0f, 0.0f, W, H);
-        
-        glm::vec3 screenPos = glm::project(
-            worldPos,
-            view,
-            projection,
-            viewport
+    glm::mat4 getNormProjectionMatrix() const {//перспективная проекции нормализованные
+        float div_f = 1.f/(F);
+        float r_l = 1.f/(R - L);
+        float t_b = 1.f/(T - B);
+        return glm::mat4(
+            glm::vec4(2*r_l, 0.f, 0.f, 0.f),
+            glm::vec4(0.f, 2*t_b, 0.f, 0.f),
+            glm::vec4((L+R)*r_l*div_f, (T+B)*t_b*div_f, -div_f*(2*F+D)/D, -div_f),
+            glm::vec4(-(L+R)*r_l, -(T+B)*t_b, -1.f, 1.f)                      
         );
-        return glm::vec3(screenPos.x, H - screenPos.y, screenPos.z);
+        
+        //return glm::ortho(L, R, B, T, -100.0f, 100.0f);
+    }
+    glm::vec4 worldToView(const glm::vec3& worldPos) const {
+        return getViewMatrix() * glm::vec4(worldPos, 1.0f);
+    }
+    glm::vec4 viewToNormalized(const glm::vec4& viewPos) const {
+        glm::vec4 normalizedPos = getNormProjectionMatrix() * viewPos;
+        return normalizedPos;
+    }
+    glm::vec2 normalizedToScreen(const glm::vec4& normalizedPos) {
+        glm::vec2 screenPos;
+        screenPos.x = 0.5 * W * (1 + normalizedPos.x);
+        screenPos.y = 0.5 * H * (1 - normalizedPos.y);
+        return screenPos;
+    }
+    glm::vec2 screenToProj(const glm::vec2& screenPos) const {
+        glm::vec2 projPos;
+        projPos.x = 0.5 * (L + R + (R - L)*(2*screenPos.x/W - 1));
+        projPos.y = 0.5 * (T + B + (T - B)*(1 - 2*screenPos.y/H));
+        return projPos;
+    }
+    glm::vec2 projToScreen(const glm::vec2& projPos) const {
+        float r_l = 1.f/(R - L);
+        float t_b = 1.f/(T - B);
+        glm::vec2 screenPos;
+        screenPos.x = 0.5 * W * (1 + (2 * projPos.x - (L + R)) * r_l);
+        screenPos.y = 0.5 * H * (1 + ((T + B) - 2 * projPos.y) * t_b);
+        return screenPos;
+    }
+    glm::vec2 worldToScreen(const glm::vec3& worldPos) {
+        glm::vec4 viewPos = worldToView(worldPos);
+        glm::vec4 normalizedPos = viewToNormalized(viewPos);
+        glm::vec2 screenPos =  normalizedToScreen(normalizedPos);
+        return screenPos;
+    }
+    void rotateAroundFocus(float horizontalAngle, float verticalAngle)
+    {
+        
     }
 };

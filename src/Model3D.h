@@ -32,9 +32,6 @@ private:
     Vertices currMatrix;
     glm::mat4 accumulatedTransform;
 
-    bool isDragging;
-    glm::vec3 dragPos;
-
     //glm::mat3 axisTransform(const glm::vec2& p1, const glm::vec2& p2, const glm::mat3& M);
 public:
     Model3D(const Vertices& vertices, const Faces& faces, const Edges& edges):
@@ -42,7 +39,6 @@ public:
             modelEdges = edges;
             modelFaces = faces;
             accumulatedTransform = glm::mat4(1.0f);
-            isDragging = false;
     }
 
     Model3D(const Vertices& vertices, const Faces& faces) {
@@ -61,10 +57,6 @@ public:
     // void reflectWithAxis(const glm::vec2 &p1, const glm::vec2 &p2, bool reflectX, bool reflectY);
     // void scaleWithAxis(const glm::vec2& p1, const glm::vec2& p2, float sx, float sy);
     // void shearWithAxis(const glm::vec2& p1, const glm::vec2& p2, float shx, float shy);
-
-    void startDrag(const glm::vec3& worldPos);
-    void drag(const glm::vec3& worldPos);
-    void endDrag();
 
     Vertices getVertices() const { return currMatrix; }
     const Edges& getEdges() const { return modelEdges; }

@@ -74,23 +74,3 @@ void Model3D::reflect(bool reflectX, bool reflectY, bool reflectZ)
 //     glm::mat3 S = AffineTransform3D::shearing(shx, shy);
 //     accumulatedTransform = axisTransform(p1, p2, S) * accumulatedTransform;
 // }
-
-void Model3D::startDrag(const glm::vec3 &worldPos)
-{
-    isDragging = true;
-    dragPos = worldPos;
-}
-
-void Model3D::drag(const glm::vec3 &worldPos)
-{
-    if (!isDragging) return;
-    
-    glm::vec3 delta = worldPos - dragPos;
-    translate(delta.x, delta.y, delta.z);
-    dragPos = worldPos; 
-}
-
-void Model3D::endDrag()
-{
-    isDragging = false;
-}
