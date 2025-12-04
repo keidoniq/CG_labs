@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <map>
+#include "AffineTransform3D.h"
 // Примерная структура класса Camera3D. Поля класса Camera3D:
 // • L, R, B, T (мировые координаты границ окна для первого способа) 
     //либо X0, Y0, px, py (для второго способа);
@@ -33,15 +34,14 @@ private:
     int W, H;
 
     float L, R, B, T;
-
     void maintainAspectRatio();
 public:
     Camera3D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, float B = -DEFAULT_DIST, float T = DEFAULT_DIST, 
-        int W = 800, int H = 600, bool isDragging = false,
+        int W = 800, int H = 600,
         glm::vec3 O_vector = glm::vec3(0.f, 0.f, 2.5f),
-        glm::vec3 N_vector = glm::vec3(0.f, 0.f, -3.f),
+        glm::vec3 N_vector = glm::vec3(0.f, 0.f, 3.f),
         glm::vec3 T_vector = glm::vec3(0.f, 1.f, 0.f),
-        float distance = 15.f, float f = 5.f):
+        float distance = 5.f, float f = 5.f):
         L(L), R(R), B(B), T(T), W(W), H(H), D(distance), F(f),
         O_vector(O_vector), N_vector(N_vector), T_vector(T_vector) {
 
@@ -56,6 +56,8 @@ public:
     float getRight() const { return R; }
     float getBottom() const { return B; }
     float getTop() const { return T; }
+    float getFocusDistance() const { return F; }
+    float getDistancce() const { return D; }
     glm::vec4 getViewport() const { return glm::vec4(L, R, B, T); }
     
     void clear() const;
@@ -87,7 +89,7 @@ public:
     }
     
     glm::mat4 getViewMatrix () const {//из мировых в видовые
-        glm::vec3 k = glm::normalize(N_vector);
+        glm::vec3 k = -glm::normalize(N_vector);
         glm::vec3 i = glm::normalize(glm::cross(T_vector, N_vector));
         glm::vec3 j = glm::normalize(glm::cross(k, i));
         
@@ -95,13 +97,13 @@ public:
             glm::vec4(i.x, j.x, k.x, 0.f),
             glm::vec4(i.y, j.y, k.y, 0.f), 
             glm::vec4(i.z, j.z, k.z, 0.f),
-            glm::vec4(-glm::dot(i, O_vector),  
-                      -glm::dot(j, O_vector),  
+            glm::vec4(glm::dot(i, O_vector),  
+                      glm::dot(j, O_vector),  
                       glm::dot(k, O_vector),  
                       1.f)                      
         );
     }
-    glm::mat4 getNormProjectionMatrix() const {//перспективная проекции нормализованные
+    glm::mat4 getNormalizedProjectionMatrix() const {//перспективная проекции нормализованные
         float div_f = 1.f/(F);
         float r_l = 1.f/(R - L);
         float t_b = 1.f/(T - B);
@@ -111,14 +113,12 @@ public:
             glm::vec4((L+R)*r_l*div_f, (T+B)*t_b*div_f, -div_f*(2*F+D)/D, -div_f),
             glm::vec4(-(L+R)*r_l, -(T+B)*t_b, -1.f, 1.f)                      
         );
-        
-        //return glm::ortho(L, R, B, T, -100.0f, 100.0f);
     }
     glm::vec4 worldToView(const glm::vec3& worldPos) const {
         return getViewMatrix() * glm::vec4(worldPos, 1.0f);
     }
     glm::vec4 viewToNormalized(const glm::vec4& viewPos) const {
-        glm::vec4 normalizedPos = getNormProjectionMatrix() * viewPos;
+        glm::vec4 normalizedPos = getNormalizedProjectionMatrix() * viewPos;
         return normalizedPos;
     }
     glm::vec2 normalizedToScreen(const glm::vec4& normalizedPos) {
@@ -147,8 +147,35 @@ public:
         glm::vec2 screenPos =  normalizedToScreen(normalizedPos);
         return screenPos;
     }
-    void rotateAroundFocus(float horizontalAngle, float verticalAngle)
-    {
-        
+    void rotateAroundFocus(float horizontalAngle, float verticalAngle){
+    }
+    void pitchRight(float phi)
+    {//ось вращения - B
+        glm::vec4 dir = AffineTransform3D::rotation(phi, Axis::X) * glm::vec4(N_vector, 0.0f);
+        N_vector = glm::normalize(glm::vec3(dir));
+        glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
+        T_vector = glm::normalize(glm::cross(right, N_vector));
+    }
+    void yawUp(float phi)
+    {//ось вращения - T
+        glm::vec4 dir = AffineTransform3D::rotation(phi, Axis::Y) * glm::vec4(N_vector, 0.0f);
+        N_vector = glm::normalize(glm::vec3(dir));
+
+        glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
+        T_vector = glm::normalize(glm::cross(right, N_vector));
+    }
+    void roll(float phi)
+    {//ось вращения - N
+        glm::vec4 up = AffineTransform3D::rotation(phi, Axis::Z) * glm::vec4(T_vector, 0.0f);
+        T_vector = glm::normalize(glm::vec3(up));
+    }
+    void rotateAroundFocusWithMouse(float deltaX, float deltaY, float sensitivity = 0.01f) {
+        rotateAroundFocus(deltaX * sensitivity, deltaY * sensitivity);
+    }
+    void zoomByDistance(float factor){
+        D = D * factor;
+    }
+    void setFocusDistance(float FocusDistance){
+        F = FocusDistance;
     }
 };

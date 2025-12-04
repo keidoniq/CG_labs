@@ -12,7 +12,7 @@
 #include "ModelLoader.h"
 
 std::string controlsInfo();
-std::ostream& operator<<(std::ostream& os, const glm::mat4& mat);
+std::ostream& operator<<(std::ostream& os, const glm::mat4 &mat);
 std::ostream &operator<<(std::ostream &os, const glm::vec4 &vec);
 std::ostream &operator<<(std::ostream &os, const glm::vec3 &vec);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -139,7 +139,7 @@ int main()
 
         //Upd for shader
         currModel = scene->getCurrModel();
-        projection = scene->getCamera().getNormProjectionMatrix();
+        projection = scene->getCamera().getNormalizedProjectionMatrix();
         view = scene->getCamera().getViewMatrix();
 
         triShader.setMat4("projection", projection);
@@ -147,9 +147,8 @@ int main()
         triShader.setMat4("model", model);
 
         // Get the transformed vertices for rendering
-        Vertices currentVertices = currModel->getVertices();
+        VerticesMatrix transformedVertices = currModel->getVertices();
         //std::cout << "\nVertices:\t" << scene->getiCurrModel() << '\n';
-        VerticesMatrix transformedVertices = currentVertices.getVertices();
         std::vector<unsigned int> indices;
         //std::cout << "\nIndices:\t" << scene->getiCurrModel() << '\n';
         for (auto edge : currModel->getEdges().getEdges()) {
@@ -231,12 +230,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                     break;
                 case GLFW_MOUSE_BUTTON_RIGHT:
                     //todo
-                    scene->handleMouseClick(screenPos); // RMB → move model
+                    
                     break;
             }
             break;
         case GLFW_RELEASE:
-            scene->handleMouseRelease();
             break;
     }
 }
@@ -283,16 +281,18 @@ std::string controlsInfo() {
        << "  Arrow Down - Move camera backward\n" 
        << "  Arrow Left - Move camera left\n"
        << "  Arrow Right - Move camera right\n"
-       << "  U - Move camera up\n"
-       << "  D - Move camera down\n\n"
+       << "  U - Pitch camera up\n"
+       << "  D - Pitch camera down\n"
+       << "  B - Yaw camera up\n"
+       << "  G - Yaw camera down\n"
+       << "  L - Roll camera\n"
+       << "  M - Roll camera\n\n"
        
        << "SYSTEM:\n"
        << "  N - Go to the next model\n"
        << "  T - Reset all model transformations\n"
        << "  P - Reset camera to default position\n"
        << "  Mouse Wheel - Zoom in/out\n"
-    //    << "  LMB + Drag - Move scene\n"
-    //    << "  RMB + Drag - Move model\n"
        << "  ESC -> Exit.\n";
     return ss.str();
 }
@@ -307,7 +307,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         //std::cout << "\nIn switch:\t" << scene->getiCurrModel() << '\n';
         Camera3D& camera = scene->getCamera(); // Get camera reference
-        float moveSpeed = 0.5f;
+        float moveSpeed = 0.2f;
+        float currF = scene->getCamera().getFocusDistance();
         switch (key) {
             // CAMERA MOVEMENT CONTROLS
             case GLFW_KEY_H: // Rotate camera left
@@ -318,27 +319,33 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
             case GLFW_KEY_UP:
                 camera.moveForward(moveSpeed);
-                std::cout << "forward\n";
                 break;
             case GLFW_KEY_DOWN:
                 camera.moveBackward(moveSpeed);
-                std::cout << "back\n";
                 break;
             case GLFW_KEY_LEFT:
                 camera.moveLeft(moveSpeed);
-                std::cout << "left\n";
                 break;
             case GLFW_KEY_RIGHT:
                 camera.moveRight(moveSpeed);
-                std::cout << "right\n";
                 break;
             case GLFW_KEY_U:
-                camera.moveUp(moveSpeed);
-                std::cout << "up\n";
+                camera.pitchRight(moveSpeed);
                 break;
             case GLFW_KEY_D:
-                camera.moveDown(moveSpeed);
-                std::cout << "down\n";
+                camera.pitchRight(-moveSpeed);
+                break;
+            case GLFW_KEY_B:
+                camera.yawUp(moveSpeed);
+                break;
+            case GLFW_KEY_G:
+                camera.yawUp(-moveSpeed);
+                break;
+            case GLFW_KEY_L:
+                camera.roll(moveSpeed);
+                break;
+            case GLFW_KEY_M:
+                camera.roll(-moveSpeed);
                 break;
             // Translate
             case GLFW_KEY_W:
@@ -412,6 +419,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     << " out of " << scene->getNModels() 
                     << " models. Model address: " << currModel << std::endl;
 
+                break;
+            
+            case GLFW_KEY_O:
+                scene->getCamera().setFocusDistance(currF-1.5);
+                std::cout << "\nO - currF: "<< currF << " new: " << currF-1.5;
+                break;
+            case GLFW_KEY_K:
+                scene->getCamera().setFocusDistance(currF+1.5);
+                std::cout << "\nK - currF: "<< currF << " new: " << currF+1.5;
                 break;
         }
     }

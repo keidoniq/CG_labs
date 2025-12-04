@@ -1,18 +1,4 @@
 #include "Model3D.h"
-
-// glm::mat3 Model3D::axisTransform(const glm::vec2 &p1, const glm::vec2 &p2, const glm::mat3 &M)
-// {
-//     float dx = p2.x - p1.x;
-//     float dy = p2.y - p1.y;
-
-//     glm::mat3 T1 = AffineTransform3D::translation(-p1.x, -p1.y);
-//     glm::mat3 R1 = AffineTransform3D::rotation(dx,-dy);
-//     glm::mat3 R2 = AffineTransform3D::rotation(dx,dy);
-//     glm::mat3 T2 = AffineTransform3D::translation(p1.x, p1.y);
-
-//     return T2 * R2 * M * R1 * T1;
-// }
-
 void Model3D::applyTransformation()
 {
     VerticesMatrix initVertices = initMatrix.getVertices();
@@ -56,21 +42,3 @@ void Model3D::reflect(bool reflectX, bool reflectY, bool reflectZ)
 {
     accumulatedTransform = AffineTransform3D::reflection(reflectX, reflectY, reflectZ) * accumulatedTransform;
 }
-
-// void Model3D::reflectWithAxis(const glm::vec2 &p1, const glm::vec2 &p2, bool reflectX, bool reflectY)
-// {
-//     glm::mat3 R = AffineTransform3D::reflection(reflectX, reflectY);
-//     accumulatedTransform = axisTransform(p1, p2, R) * accumulatedTransform;
-// }
-
-// void Model3D::scaleWithAxis(const glm::vec2 &p1, const glm::vec2 &p2, float sx, float sy)
-// {
-//     glm::mat3 S = AffineTransform3D::scaling(sx, sy);
-//     accumulatedTransform = axisTransform(p1, p2, S) * accumulatedTransform;
-// }
-
-// void Model3D::shearWithAxis(const glm::vec2 &p1, const glm::vec2 &p2, float shx, float shy)
-// {
-//     glm::mat3 S = AffineTransform3D::shearing(shx, shy);
-//     accumulatedTransform = axisTransform(p1, p2, S) * accumulatedTransform;
-// }

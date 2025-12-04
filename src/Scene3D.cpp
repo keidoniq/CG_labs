@@ -29,13 +29,6 @@ void Scene3D::render() const {
     }
 }
 
-void Scene3D::handleMouseClick(const glm::vec2& screenPos) {
-}
-
-
-void Scene3D::handleMouseRelease() {
-}
-
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {
     glm::vec2 projPos = camera.screenToProj(screenPos);
     camera.zoom(factor, projPos);

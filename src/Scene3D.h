@@ -32,6 +32,4 @@ public:
     void updModels() const;
     
     void handleZoom(float factor, const glm::vec2& screenPos);
-    void handleMouseClick(const glm::vec2& screenPos);
-    void handleMouseRelease();
 };

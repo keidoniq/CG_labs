@@ -12,7 +12,6 @@ void Camera3D::setViewport(int width, int height)
     H = height;
     m_aspectRatio = float(W) / H;
     maintainAspectRatio();
-    //glViewport(0, 0, W, H);
     updAxes();
 }
 
@@ -44,11 +43,11 @@ void Camera3D::clear() const {
 
 void Camera3D::resetCamera() {
     O_vector = glm::vec3(0.f, 0.f, 2.5f);
-    N_vector = glm::vec3(0.f, 0.f, -1.f);
+    N_vector = glm::vec3(0.f, 0.f, 3.f);
     T_vector = glm::vec3(0.f, 1.f, 0.f);
     D = 5.f;
-    F = 1.f;
-        
+    F = 5.f;
+
     L = -DEFAULT_DIST;
     R = DEFAULT_DIST;
     B = -DEFAULT_DIST;
