@@ -311,11 +311,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         float currF = scene->getCamera().getFocusDistance();
         switch (key) {
             // CAMERA MOVEMENT CONTROLS
-            case GLFW_KEY_H: // Rotate camera left
-                camera.rotateAroundFocus(glm::radians(10.0f), glm::radians(0.0f));
+            case GLFW_KEY_O:
+                scene->getCamera().zoomByFocusDistance(1.25);
+                std::cout << "\nO - currF: "<< currF << " new: " << scene->getCamera().getFocusDistance();
                 break;
-            case GLFW_KEY_V: // Rotate camera left
-                camera.rotateAroundFocus(glm::radians(0.0f), glm::radians(10.0f));
+            case GLFW_KEY_K:
+                scene->getCamera().zoomByFocusDistance(0.25);
+                std::cout << "\nK - currF: "<< currF << " new: " << scene->getCamera().getFocusDistance();
                 break;
             case GLFW_KEY_UP:
                 camera.moveForward(moveSpeed);
@@ -332,7 +334,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_U:
                 camera.pitchRight(moveSpeed);
                 break;
-            case GLFW_KEY_D:
+            case GLFW_KEY_H:
                 camera.pitchRight(-moveSpeed);
                 break;
             case GLFW_KEY_B:
@@ -357,13 +359,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_A:
                 currModel->translate(-0.5f, 0.0f, 0.0f);
                 break;
-            case GLFW_KEY_Q:
+            case GLFW_KEY_D:
                 currModel->translate(0.5f, 0.0f, 0.0f);
                 break;
-            case GLFW_KEY_E:
+            case GLFW_KEY_Q:
                 currModel->translate(0.0f, 0.0f, -0.5f);
                 break;
-            case GLFW_KEY_C:
+            case GLFW_KEY_E:
                 currModel->translate(0.0f, 0.0f, 0.5f);
                 break;
                 
@@ -415,19 +417,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_N:
                 scene->toNextModel();
                 currModel = scene->getCurrModel();
-                std::cout << "Switched to model index: " << scene->getiCurrModel() 
+                std::cout << "Switched to model index: " << scene->getiCurrModel()+1
                     << " out of " << scene->getNModels() 
                     << " models. Model address: " << currModel << std::endl;
-
                 break;
-            
-            case GLFW_KEY_O:
-                scene->getCamera().setFocusDistance(currF-1.5);
-                std::cout << "\nO - currF: "<< currF << " new: " << currF-1.5;
-                break;
-            case GLFW_KEY_K:
-                scene->getCamera().setFocusDistance(currF+1.5);
-                std::cout << "\nK - currF: "<< currF << " new: " << currF+1.5;
+            case GLFW_KEY_0:
+                std::cout << "CAMERA INFO:\t" <<
+                "F=" << scene->getCamera().getFocusDistance() <<
+                " D=" << scene->getCamera().getDistancce() <<
+                "\nO_vector: "<< scene->getCamera().getO() <<
+                "N_vector: "<< scene->getCamera().getN() <<
+                "T_vector: "<< scene->getCamera().getT() << '\n';
                 break;
         }
     }

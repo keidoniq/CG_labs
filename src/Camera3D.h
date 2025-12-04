@@ -51,6 +51,7 @@ public:
     ~Camera3D();
     
     void zoom(float factor, const glm::vec2& screenPoint);
+    void zoomByFocusDistance(float factor){ F *= factor; }
 
     float getLeft() const { return L; }
     float getRight() const { return R; }
@@ -58,7 +59,11 @@ public:
     float getTop() const { return T; }
     float getFocusDistance() const { return F; }
     float getDistancce() const { return D; }
+    glm::vec3 getO() const { return O_vector; }
+    glm::vec3 getN() const { return N_vector; }
+    glm::vec3 getT() const { return T_vector; }
     glm::vec4 getViewport() const { return glm::vec4(L, R, B, T); }
+    void setFocusDistance(float FocusDistance){ F = FocusDistance; }
     
     void clear() const;
     void resetCamera();
@@ -76,7 +81,7 @@ public:
     }
     void moveLeft(float distance) {
         glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
-        O_vector += right * distance;
+        O_vector -= right * distance;
     }
     void moveRight(float distance) {
         moveLeft(-distance);
@@ -147,8 +152,6 @@ public:
         glm::vec2 screenPos =  normalizedToScreen(normalizedPos);
         return screenPos;
     }
-    void rotateAroundFocus(float horizontalAngle, float verticalAngle){
-    }
     void pitchRight(float phi)
     {//ось вращения - B
         glm::vec4 dir = AffineTransform3D::rotation(phi, Axis::X) * glm::vec4(N_vector, 0.0f);
@@ -168,14 +171,5 @@ public:
     {//ось вращения - N
         glm::vec4 up = AffineTransform3D::rotation(phi, Axis::Z) * glm::vec4(T_vector, 0.0f);
         T_vector = glm::normalize(glm::vec3(up));
-    }
-    void rotateAroundFocusWithMouse(float deltaX, float deltaY, float sensitivity = 0.01f) {
-        rotateAroundFocus(deltaX * sensitivity, deltaY * sensitivity);
-    }
-    void zoomByDistance(float factor){
-        D = D * factor;
-    }
-    void setFocusDistance(float FocusDistance){
-        F = FocusDistance;
     }
 };
