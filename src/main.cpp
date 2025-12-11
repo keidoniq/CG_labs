@@ -34,11 +34,11 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 const std::vector<std::string> modelPaths = {
-    "resourses/torusknot.obj",
+    "resourses/gear.obj",
     "resourses/star.obj",
+    "resourses/torusknot.obj",
     "resourses/cube.obj",
     "resourses/gem.obj",
-    "resourses/gear.obj",
     "resourses/icosphere.obj",
     "resourses/cylinder.obj",
     "resourses/cone.obj",
@@ -91,6 +91,11 @@ int main()
             std::cout << "Failed to load model: " << modelPath << std::endl;
             return -1;
         }
+        
+        Vertices modelAxis;
+        for (const auto& vertex : loader.vcCoordinates) {
+            modelAxis.addVertex(vertex.x, vertex.y, vertex.z);
+        }
 
         Vertices modelVertices;
         for (const auto& vertex : loader.vCoordinates) {
@@ -104,7 +109,7 @@ int main()
 
         Edges modelEdges = modelFaces.getEdgesFromFaces();
 
-        Model3D* newModel = new Model3D(modelVertices, modelFaces, modelEdges);
+        Model3D* newModel = new Model3D(modelVertices, modelFaces, modelEdges, modelAxis);
         scene->addModel(*newModel);
     }
     currModel = scene->getCurrModel();
@@ -112,8 +117,6 @@ int main()
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
-    std::cout << "Before render loop:\t" << scene->getiCurrModel() << scene->getCurrModel() <<'\n';
-
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -133,6 +136,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         scene->render();
+
         triShader.release();
 
         glfwSwapBuffers(window);
@@ -202,14 +206,14 @@ std::string controlsInfo() {
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    // Vertices currentVertices = testModel->getVertices();
-    // VerticesMatrix verticesMatrix = currentVertices.getVertices();
-    // glm::vec2 customPoint1 = verticesMatrix.front().getCartesianCoordinates();
-    // glm::vec2 customPoint2 = verticesMatrix[3].getCartesianCoordinates();
+    VerticesMatrix centerAxis = currModel->getAxis();
+    glm::vec3 p0 = centerAxis[0].getCartesianCoordinates();
+    glm::vec3 p1 = centerAxis[1].getCartesianCoordinates();
+    glm::vec3 p2 = centerAxis[2].getCartesianCoordinates();
+    glm::vec3 p3 = centerAxis[3].getCartesianCoordinates();
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        //std::cout << "\nIn switch:\t" << scene->getiCurrModel() << '\n';
-        Camera3D& camera = scene->getCamera(); // Get camera reference
+        Camera3D& camera = scene->getCamera();
         float moveSpeed = 0.2f;
         float currF = scene->getCamera().getFocusDistance();
         switch (key) {
@@ -282,6 +286,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_Z:
                 currModel->rotate(glm::radians(15.0), Axis::Z);
                 break;
+            case GLFW_KEY_7:
+                currModel->rotateWithAxis(p0, p1, glm::radians(5.0)); 
+                break;
+            case GLFW_KEY_8:
+                currModel->rotateWithAxis(p0, p2, glm::radians(5.0)); 
+                break;
+            case GLFW_KEY_9:
+                currModel->rotateWithAxis(p0, p3, glm::radians(5.0)); 
+                break;
 
             //Scale
             case GLFW_KEY_I:
@@ -318,11 +331,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 scene->getCamera().resetCamera();
                 break;
             case GLFW_KEY_N:
-                scene->toNextModel();
-                currModel = scene->getCurrModel();
                 std::cout << "Switched to model index: " << scene->getiCurrModel()+1
                     << " out of " << scene->getNModels() 
                     << " models. Model address: " << currModel << std::endl;
+                scene->toNextModel();
+                currModel = scene->getCurrModel();
                 break;
             case GLFW_KEY_0:
                 std::cout << "CAMERA INFO:\t" <<

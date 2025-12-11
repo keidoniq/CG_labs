@@ -14,9 +14,11 @@ public:
 	std::vector<glm::vec3> vCoordinates;
 	std::vector<glm::vec2> vtCoordinates;
 	std::vector<glm::vec3> vnCoordinates;
+	std::vector<glm::vec3> vcCoordinates;
 	std::vector<unsigned int> get_indicies();
 private:
 	bool parceVertices(const std::string& srVertex, glm::vec3& vertex);
+	bool parceCenterVertices(const std::string& srCenterVertex, glm::vec3& vertex);
 	bool parceTextureCoords(const std::string& srTextureCoordinate, glm::vec2& textureCoordinate);
 	bool parceNormal(const std::string& srNormal, glm::vec3& normal);
 	bool parceFaces(std::string& srF, std::vector<int>& one_triangle);
@@ -51,6 +53,16 @@ inline bool ModelLoader::isLoad(const std::string& path){
             }
             else {
                 std::cout << "ERROR: Failed to parse vertex at line " << lineCount << std::endl;
+                isLoad = false;
+            }
+        }
+		else if (identifier == "vc") {
+            glm::vec3 v;
+            if (parceCenterVertices(parseData, v)) {
+                vcCoordinates.push_back(v);
+            }
+            else {
+                std::cout << "ERROR: Failed to parse center vertex at line " << lineCount << std::endl;
                 isLoad = false;
             }
         }
@@ -115,6 +127,26 @@ inline bool ModelLoader::parceVertices(const std::string& srVertex, glm::vec3& v
 {
 	bool is_correct = true;
 	std::stringstream ss(srVertex);
+	double elem;
+	std::vector<double> help_vec;
+	while (ss >> elem) {
+		help_vec.push_back(elem);
+	}
+	if (help_vec.size() == 3)
+	{
+		vertex.x = help_vec[0];
+		vertex.y = help_vec[1];
+		vertex.z = help_vec[2];
+	}
+	else
+		is_correct = false;
+	return is_correct;
+}
+
+inline bool ModelLoader::parceCenterVertices(const std::string& srCenterVertex, glm::vec3& vertex)
+{
+	bool is_correct = true;
+	std::stringstream ss(srCenterVertex);
 	double elem;
 	std::vector<double> help_vec;
 	while (ss >> elem) {
