@@ -22,14 +22,14 @@
 // • процедуры для построения координатных осей;
 // • при реализации могут понадобиться и другие методы
 //  (например, процедуры, реализующие перетаскивание графика мышью и масштабирование графика).
-const static float DEFAULT_DIST = 5.f;
+const static float DEFAULT_DIST = 10.f;
 
 class Camera3D {
 private:
     GLuint axisVAO = 0, axisVBO = 0;
 
     float m_aspectRatio;
-    glm::vec3 O_vector, N_vector, T_vector;
+    glm::vec3 O_vector, N_vector, T_vector;//to research - from t,n to i,j,k
     float F, D;
     int W, H;
 
@@ -38,10 +38,10 @@ private:
 public:
     Camera3D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, float B = -DEFAULT_DIST, float T = DEFAULT_DIST, 
         int W = 800, int H = 600,
-        glm::vec3 O_vector = glm::vec3(0.f, 0.f, 2.5f),
         glm::vec3 N_vector = glm::vec3(0.f, 0.f, 3.f),
+        glm::vec3 O_vector = glm::vec3(0.f, 0.f, 5.f),
         glm::vec3 T_vector = glm::vec3(0.f, 1.f, 0.f),
-        float distance = 5.f, float f = 5.f):
+        float distance = 10.f, float f = 5.f):
         L(L), R(R), B(B), T(T), W(W), H(H), D(distance), F(f),
         O_vector(O_vector), N_vector(N_vector), T_vector(T_vector) {
 
@@ -74,27 +74,27 @@ public:
 
     
     void moveForward(float distance) {
-        O_vector += N_vector * distance;
+        O_vector += glm::normalize(N_vector) * distance;
     }
     void moveBackward(float distance) {
         moveForward(-distance);
     }
     void moveLeft(float distance) {
         glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
-        O_vector -= right * distance;
+        O_vector -= glm::normalize(right) * distance;
     }
     void moveRight(float distance) {
         moveLeft(-distance);
     }
     void moveUp(float distance) {
-        O_vector += T_vector * distance;
+        O_vector += glm::normalize(T_vector) * distance;
     }
     void moveDown(float distance) {
         moveUp(-distance);
     }
     
     glm::mat4 getViewMatrix () const {//из мировых в видовые
-        glm::vec3 k = -glm::normalize(N_vector);
+        glm::vec3 k = glm::normalize(N_vector);
         glm::vec3 i = glm::normalize(glm::cross(T_vector, N_vector));
         glm::vec3 j = glm::normalize(glm::cross(k, i));
         
@@ -102,9 +102,9 @@ public:
             glm::vec4(i.x, j.x, k.x, 0.f),
             glm::vec4(i.y, j.y, k.y, 0.f), 
             glm::vec4(i.z, j.z, k.z, 0.f),
-            glm::vec4(glm::dot(i, O_vector),  
-                      glm::dot(j, O_vector),  
-                      glm::dot(k, O_vector),  
+            glm::vec4(-glm::dot(i, O_vector),  
+                      -glm::dot(j, O_vector),  
+                      -glm::dot(k, O_vector),  
                       1.f)                      
         );
     }
@@ -132,6 +132,14 @@ public:
         screenPos.y = 0.5 * H * (1 - normalizedPos.y);
         return screenPos;
     }
+    glm::vec4 normalizedToWorld(const glm::vec4& normalizedPos) const {
+        glm::mat4 invProjection = glm::inverse(getNormalizedProjectionMatrix());
+        glm::mat4 invView = glm::inverse(getViewMatrix());
+        glm::vec4 viewPos = invProjection * normalizedPos;
+        glm::vec4 worldPos = invView * viewPos;
+        
+        return worldPos;
+    }
     glm::vec2 screenToProj(const glm::vec2& screenPos) const {
         glm::vec2 projPos;
         projPos.x = 0.5 * (L + R + (R - L)*(2*screenPos.x/W - 1));
@@ -152,6 +160,7 @@ public:
         glm::vec2 screenPos =  normalizedToScreen(normalizedPos);
         return screenPos;
     }
+    //camera rotate in view coord - research - i.e. i,j,k - 
     void pitchRight(float phi)
     {//ось вращения - B
         glm::vec4 dir = AffineTransform3D::rotation(phi, Axis::X) * glm::vec4(N_vector, 0.0f);

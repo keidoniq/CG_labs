@@ -3,6 +3,9 @@
 #include "Camera3D.h"
 #include "Model3D.h"
 #include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <Windows.h>
 
 /*
 Класс Scene3D содержит в себе камеру и
@@ -16,8 +19,12 @@ private:
     std::vector<Model3D*> models;
     int iCurrModel = 0;
 
+    //done normalized
+    float getRandomAngle();
+    glm::vec3 getRandomOffset(float coeff = 1e-3, int pow = 3);
+    float getRandomScaleFactor(float coeff = 1e-1);
 public:
-    Scene3D(): camera() {}
+    Scene3D(): camera() { srand(time(nullptr)); }
     
     void addModel(Model3D& model);
     void toNextModel();
