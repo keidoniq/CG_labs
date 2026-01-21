@@ -85,3 +85,28 @@ void Camera3D::drawAxes() const{
     glBindVertexArray(axisVAO);
     glDrawArrays(GL_LINES, 0, 6);
 }
+
+void Camera3D::moveForward(float distance) {
+    O_vector += glm::normalize(N_vector) * distance;
+}
+
+void Camera3D::moveBackward(float distance) {
+    moveForward(-distance);
+}
+
+void Camera3D::moveLeft(float distance) {
+    glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
+    O_vector -= glm::normalize(right) * distance;
+}
+
+void Camera3D::moveRight(float distance) {
+    moveLeft(-distance);
+}
+
+void Camera3D::moveUp(float distance) {
+    O_vector += glm::normalize(T_vector) * distance;
+}
+
+void Camera3D::moveDown(float distance) {
+    moveUp(-distance);
+}

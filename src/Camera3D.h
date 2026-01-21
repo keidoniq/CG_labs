@@ -69,29 +69,15 @@ public:
     void resetCamera();
     void setViewport(int width, int height);
 
+    void moveForward(float distance);
+    void moveBackward(float distance);
+    void moveLeft(float distance);
+    void moveRight(float distance);
+    void moveUp(float distance);
+    void moveDown(float distance);
+
     void updAxes();
     void drawAxes() const;
-
-    
-    void moveForward(float distance) {
-        O_vector += glm::normalize(N_vector) * distance;
-    }
-    void moveBackward(float distance) {
-        moveForward(-distance);
-    }
-    void moveLeft(float distance) {
-        glm::vec3 right = glm::normalize(glm::cross(N_vector, T_vector));
-        O_vector -= glm::normalize(right) * distance;
-    }
-    void moveRight(float distance) {
-        moveLeft(-distance);
-    }
-    void moveUp(float distance) {
-        O_vector += glm::normalize(T_vector) * distance;
-    }
-    void moveDown(float distance) {
-        moveUp(-distance);
-    }
     
     glm::mat4 getViewMatrix () const {//из мировых в видовые
         glm::vec3 k = glm::normalize(N_vector);
