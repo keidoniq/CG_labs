@@ -34,15 +34,15 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 const std::vector<std::string> modelPaths = {
-    "resourses/gear.obj",
-    "resourses/star.obj",
-    "resourses/torusknot.obj",
     "resourses/cube.obj",
-    "resourses/gem.obj",
-    "resourses/icosphere.obj",
-    "resourses/cylinder.obj",
-    "resourses/cone.obj",
-    "resourses/teapot.obj",
+    // "resourses/gear.obj",
+    // "resourses/star.obj",
+    // "resourses/torusknot.obj",
+    // "resourses/gem.obj",
+    // "resourses/icosphere.obj",
+    // "resourses/cylinder.obj",
+    // "resourses/cone.obj",
+    // "resourses/teapot.obj",
 };
 
 Scene3D* scene = nullptr;
