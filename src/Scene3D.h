@@ -19,7 +19,6 @@ private:
     std::vector<Model3D*> models;
     int iCurrModel = 0;
 
-    //done normalized
     float getRandomAngle();
     glm::vec3 getRandomOffset(float coeff = 1e-3, int pow = 3);
     float getRandomScaleFactor(float coeff = 1e-1);

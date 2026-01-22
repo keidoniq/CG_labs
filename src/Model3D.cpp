@@ -1,6 +1,42 @@
 #include "Model3D.h"
 #include <iostream>
 
+void Model3D::calculateFaceNormals()
+{
+    faceNormalsInit.clear();
+
+    auto verts = initMatrix.getVertices();
+    for (const auto& face : modelFaces.getFaces()) {
+        glm::vec3 v1 = verts[face.getV1()].getCartesianCoordinates();
+        glm::vec3 v2 = verts[face.getV2()].getCartesianCoordinates();
+        glm::vec3 v3 = verts[face.getV3()].getCartesianCoordinates();
+
+        glm::vec3 n = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+        faceNormalsInit.push_back(n);
+    }
+
+    faceNormalsCurr = faceNormalsInit;
+}
+
+void Model3D::updateFaceNormals()
+{
+    faceNormalsCurr.clear();
+
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(accumulatedTransform)));
+    for (const auto& n : faceNormalsInit) {
+        faceNormalsCurr.push_back(glm::normalize(normalMatrix * n));
+    }
+}
+
+bool Model3D::isFaceVisible(
+    const glm::vec3& facePoint,
+    const glm::vec3& normal,
+    const glm::vec3& cameraPos) const
+{
+    glm::vec3 viewDir = cameraPos - facePoint;
+    return glm::dot(glm::normalize(normal), glm::normalize(viewDir)) > 0.0f;
+}
+
 void Model3D::rotateWithAxis(const glm::vec3 &p1, const glm::vec3 &p2, float angle)
 {
     float dx = p2.x - p1.x;
@@ -17,6 +53,7 @@ void Model3D::rotateWithAxis(const glm::vec3 &p1, const glm::vec3 &p2, float ang
     if (abs(dy) < 1e-10 and d_xz > 1e-10){        
         Rotation_complex = 
             AffineTransform3D::rotation(dx, -dz, Axis::Z) * R_m * 
+
             AffineTransform3D::rotation(dx, dz, Axis::Z);  
     }
     else if (d_xz > 1e-10){
@@ -63,7 +100,8 @@ void Model3D::applyTransformation()
         newVertices.addVertex(transformed.x,transformed.y, transformed.z);
     }
     currMatrix = newVertices;
-    updAxis();
+    updAxis();    
+    updateFaceNormals();
 }
 
 void Model3D::resetTransformation()
@@ -96,12 +134,12 @@ void Model3D::reflect(bool reflectX, bool reflectY, bool reflectZ)
     accumulatedTransform = AffineTransform3D::reflection(reflectX, reflectY, reflectZ) * accumulatedTransform;
 }
 
-void Model3D::draw()
+void Model3D::draw(const glm::vec3& cameraPos)
 {
     indices.clear();
     vertices.clear();
-    dataToDraw();
 
+    dataToDraw(cameraPos);
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -109,7 +147,6 @@ void Model3D::draw()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, faceIndices.size() * sizeof(unsigned int), faceIndices.data(), GL_DYNAMIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -119,8 +156,11 @@ void Model3D::draw()
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(VAO);
-    //glDrawElements(GL_TRIANGLES, faceIndices.size(), GL_UNSIGNED_INT, 0);
-    glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+
+    if (drawingMode == DRAW_WIREFRAME)
+        glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+    else
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
 
 void Model3D::initGL(){
@@ -128,16 +168,82 @@ void Model3D::initGL(){
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 }
-void Model3D::dataToDraw(){
+
+void Model3D::dataToDraw(const glm::vec3& cameraPos)
+{
+    indices.clear();
+    vertices.clear();
+
     VerticesMatrix transformedVertices = currMatrix.getVertices();
-    for (auto edge : modelEdges.getEdges()) {
-        indices.push_back(edge.getFirst());
-        indices.push_back(edge.getSecond());
+
+    for (const auto& v : transformedVertices) {
+        vertices.insert(vertices.end(), {v.x(), v.y(),v.z()});
+        vertices.insert(vertices.end(), {0.f, 0.f, 0.f});
     }
-    for (const auto& vertex : transformedVertices) {
-        vertices.push_back(vertex.x());
-        vertices.push_back(vertex.y());
-        vertices.push_back(vertex.z());
-        vertices.insert(vertices.end(), {0.5, 0, 0.5});
+
+    std::vector<FaceDrawInfo> faces;
+    float dMin =  1e9f;
+    float dMax = -1e9f;
+
+    size_t faceIndex = 0;
+    for (const auto& face : modelFaces.getFaces()) {
+        int i1 = face.getV1();
+        int i2 = face.getV2();
+        int i3 = face.getV3();
+
+        glm::vec3 v1 = transformedVertices[i1].getCartesianCoordinates();
+        glm::vec3 v2 = transformedVertices[i2].getCartesianCoordinates();
+        glm::vec3 v3 = transformedVertices[i3].getCartesianCoordinates();
+
+        glm::vec3 center = (v1 + v2 + v3) / 3.0f;
+        float depth = glm::length(cameraPos - center);
+
+        bool visible = isFaceVisible(center, faceNormalsCurr[faceIndex], cameraPos);
+
+        if (drawingMode == DRAW_ALL_FACES ||
+           (drawingMode == DRAW_VISIBLE_ONLY && visible) ||
+           (drawingMode == DRAW_INVISIBLE_ONLY && !visible))
+        {
+            faces.push_back({ i1, i2, i3, depth, visible });
+            dMin = std::min(dMin, depth);
+            dMax = std::max(dMax, depth);
+        }
+
+        ++faceIndex;
+    }
+
+    // Painter’s Algorithm
+    std::sort(faces.begin(), faces.end(),
+        [](const FaceDrawInfo& a, const FaceDrawInfo& b) {
+            return a.depth > b.depth; 
+        });
+
+    for (const auto& f : faces) {
+        float t = (dMax > dMin) ? (f.depth - dMin) / (dMax - dMin) : 0.0f;
+
+        glm::vec3 color = glm::mix(
+            glm::vec3(1.f, 0.f, 0.f), // ближний цвет
+            glm::vec3(0.f, 0.f, 0.f), // дальний цвет
+            t
+        );
+
+        for (int idx : {f.i1, f.i2, f.i3}) {
+            vertices[idx * 6 + 3] = color.r;
+            vertices[idx * 6 + 4] = color.g;
+            vertices[idx * 6 + 5] = color.b;
+        }
+
+        indices.push_back(f.i1);
+        indices.push_back(f.i2);
+        indices.push_back(f.i3);
+    }
+
+    
+    if (drawingMode == DRAW_WIREFRAME) {
+        indices.clear();
+        for (const auto& e : modelEdges.getEdges()) {
+            indices.push_back(e.getFirst());
+            indices.push_back(e.getSecond());
+        }
     }
 }

@@ -22,7 +22,7 @@
 // • процедуры для построения координатных осей;
 // • при реализации могут понадобиться и другие методы
 //  (например, процедуры, реализующие перетаскивание графика мышью и масштабирование графика).
-const static float DEFAULT_DIST = 10.f;
+const static float DEFAULT_DIST = 5.f;
 
 class Camera3D {
 private:
@@ -39,9 +39,9 @@ public:
     Camera3D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, float B = -DEFAULT_DIST, float T = DEFAULT_DIST, 
         int W = 800, int H = 600,
         glm::vec3 N_vector = glm::vec3(0.f, 0.f, 3.f),
-        glm::vec3 O_vector = glm::vec3(0.f, 0.f, 5.f),
+        glm::vec3 O_vector = glm::vec3(2.f, 2.f, 5.f),
         glm::vec3 T_vector = glm::vec3(0.f, 1.f, 0.f),
-        float distance = 10.f, float f = 5.f):
+        float distance = 10.f, float f = 7.f):
         L(L), R(R), B(B), T(T), W(W), H(H), D(distance), F(f),
         O_vector(O_vector), N_vector(N_vector), T_vector(T_vector) {
 

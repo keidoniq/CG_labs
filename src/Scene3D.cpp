@@ -22,14 +22,14 @@ float Scene3D::getRandomScaleFactor(float coeff)
 
 void Scene3D::addModel(Model3D &model)
 {
-    float coefScale = getRandomScaleFactor();
+    // float coefScale = getRandomScaleFactor();
+    // glm::vec3 offset = getRandomOffset();
     float angle = getRandomAngle();
-    glm::vec3 offset = getRandomOffset();
 
-    glm::vec3 offsetWorld = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
-    model.scale(coefScale, coefScale, coefScale);
+    // glm::vec3 offsetWorld = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
+    // model.scale(coefScale, coefScale, coefScale);
+    // model.translate(offsetWorld.x, offsetWorld.y, offsetWorld.z);
     model.rotate(angle, Axis::X);
-    model.translate(offsetWorld.x, offsetWorld.y, offsetWorld.z);
 
     models.push_back(&model);
 }
@@ -54,11 +54,15 @@ void Scene3D::render() const {
     camera.clear();
     camera.drawAxes();
 
-    for(auto m: models){
-        m->applyTransformation();
-        m->draw();
+    // for(auto m: models){
+    //     m->applyTransformation();
+    //     m->draw(camera.getO());
+    // }
+    if (!models.empty()) {
+        Model3D* currModel = models[iCurrModel];
+        currModel->applyTransformation();
+        currModel->draw(camera.getO());
     }
-    
 }
 
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {

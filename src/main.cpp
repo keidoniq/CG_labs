@@ -22,6 +22,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+const int N_DRAWING_MODE = 4;
 
 const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
     {0.5, 0, 0.5},
@@ -34,15 +35,15 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 const std::vector<std::string> modelPaths = {
+    "resourses/gear.obj",
+    "resourses/star.obj", 
     "resourses/cube.obj",
-    // "resourses/gear.obj",
-    // "resourses/star.obj",
-    // "resourses/torusknot.obj",
-    // "resourses/gem.obj",
-    // "resourses/icosphere.obj",
-    // "resourses/cylinder.obj",
-    // "resourses/cone.obj",
-    // "resourses/teapot.obj",
+    "resourses/torusknot.obj",
+    "resourses/gem.obj",
+    "resourses/icosphere.obj",
+    "resourses/cylinder.obj",
+    "resourses/cone.obj",
+    "resourses/teapot.obj",
 };
 
 Scene3D* scene = nullptr;
@@ -132,7 +133,7 @@ int main()
         triShader.setMat4("view", view);
         triShader.setMat4("model", model);
 
-        glClearColor(0.87, 0.87, 0.87, 1.f);
+        glClearColor(0.89, 0.93, 0.98, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         scene->render();
@@ -186,18 +187,13 @@ std::string controlsInfo() {
        << "  Arrow Up - Move camera forward\n"
        << "  Arrow Down - Move camera backward\n" 
        << "  Arrow Left - Move camera left\n"
-       << "  Arrow Right - Move camera right\n"
-       << "  U - Pitch camera up\n"
-       << "  H - Pitch camera down\n"
-       << "  B - Yaw camera up\n"
-       << "  G - Yaw camera down\n"
-       << "  L - Roll camera clockwise\n"
-       << "  M - Roll camera counter-clockwise\n\n"
+       << "  Arrow Right - Move camera right\n\n"
        
        << "SYSTEM:\n"
        << "  N - Go to the next model\n"
        << "  T - Reset all model transformations\n"
        << "  P - Reset camera to default position\n"
+       << "  M - Change drawing mode\n"
        << "  0 - Print camera debug info\n"
        << "  Mouse Wheel - Zoom in/out\n"
        << "  ESC -> Exit.\n";
@@ -238,24 +234,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_RIGHT:
                 camera.moveRight(moveSpeed);
                 break;
-            case GLFW_KEY_U:
-                camera.pitchRight(moveSpeed);
-                break;
-            case GLFW_KEY_H:
-                camera.pitchRight(-moveSpeed);
-                break;
-            case GLFW_KEY_B:
-                camera.yawUp(moveSpeed);
-                break;
-            case GLFW_KEY_G:
-                camera.yawUp(-moveSpeed);
-                break;
-            case GLFW_KEY_L:
-                camera.roll(moveSpeed);
-                break;
-            case GLFW_KEY_M:
-                camera.roll(-moveSpeed);
-                break;
+            // case GLFW_KEY_U:
+            //     camera.pitchRight(moveSpeed);
+            //     break;
+            // case GLFW_KEY_H:
+            //     camera.pitchRight(-moveSpeed);
+            //     break;
+            // case GLFW_KEY_B:
+            //     camera.yawUp(moveSpeed);
+            //     break;
+            // case GLFW_KEY_G:
+            //     camera.yawUp(-moveSpeed);
+            //     break;
+            // case GLFW_KEY_L:
+            //     camera.roll(moveSpeed);
+            //     break;
+            // case GLFW_KEY_M:
+            //     camera.roll(-moveSpeed);
+            //     break;
             // Translate
             case GLFW_KEY_W:
                 currModel->translate(0.0f, 0.5f, 0.0f);
@@ -344,6 +340,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 "\nO_vector: "<< scene->getCamera().getO() <<
                 "N_vector: "<< scene->getCamera().getN() <<
                 "T_vector: "<< scene->getCamera().getT() << '\n';
+                break;
+            case GLFW_KEY_M:
+                int currDrawingMode = currModel->getDrawingMode();
+                currDrawingMode = (currDrawingMode + 1) % N_DRAWING_MODE;
+                currModel->setDrawingMode(DrawingMode(currDrawingMode));
+                std::cout << "Switched to drawing mode: " << currModel->getDrawingMode() << std::endl;
                 break;
         }
     }

@@ -9,7 +9,6 @@ private:
 public:
     FaceStruct(int v1, int v2, int v3) {
         vertices = {v1, v2, v3};
-        std::sort(vertices.begin(), vertices.end());
     }
 
     int getV1() const { return vertices[0]; }

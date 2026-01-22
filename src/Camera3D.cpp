@@ -42,11 +42,11 @@ void Camera3D::clear() const {
 }
 
 void Camera3D::resetCamera() {
-    O_vector = glm::vec3(0.f, 0.f, 5.f);
+    O_vector = glm::vec3(2.f, 2.f, 5.f);
     N_vector = glm::vec3(0.f, 0.f, 3.f);
     T_vector = glm::vec3(0.f, 1.f, 0.f);
     D = 10.f;
-    F = 5.f;
+    F = 7.f;
 
     L = -DEFAULT_DIST;
     R = DEFAULT_DIST;
@@ -56,7 +56,7 @@ void Camera3D::resetCamera() {
 }
 
 void Camera3D::updAxes() {
-    float axisLength = DEFAULT_DIST;
+    float axisLength = 2*DEFAULT_DIST;
     float axisVertices[] = {
         // X-axis (red)
         -axisLength, 0.f, 0.f,  1.f, 0.f, 0.f,
