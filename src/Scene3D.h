@@ -26,7 +26,7 @@ private:
     int iCurrModel = 0;
     Drawing_Mode currDrawingMode = Drawing_Mode::ONE_MODEL;
 
-    float getRandomAngle();
+    float getRandomAngle(int limitUp = 90, float range = 45.f);
     glm::vec3 getRandomOffset(float coeff = 1e-3, int pow = 3);
     float getRandomScaleFactor(float coeff = 1e-1);
     int getiNextModel();
@@ -35,7 +35,7 @@ public:
     { srand(time(nullptr)); camera.setViewport(w, h);}
     
     void loadModel(std::string modelPath);
-    void addModel(Model3D& model);
+    void addModel(Model3D& model, bool isRandom = false);
     void toNextModel();
     void clearModels();
     void updModels() const;
@@ -49,4 +49,45 @@ public:
     void changeDrawingMode();
     void resize(int width, int height);
     void handleZoom(float factor, const glm::vec2& screenPos);
+
+private:    
+    const std::vector<glm::vec3> MODEL_COLORS = {
+        glm::vec3(0.8f, 0.2f, 0.2f),   // Красный
+        glm::vec3(0.2f, 0.8f, 0.2f),   // Зеленый
+        glm::vec3(0.2f, 0.2f, 0.8f),   // Синий
+        
+        glm::vec3(0.8f, 0.8f, 0.2f),   // Желтый
+        glm::vec3(0.8f, 0.2f, 0.8f),   // Пурпурный
+        glm::vec3(0.2f, 0.8f, 0.8f),   // Бирюзовый
+        
+        glm::vec3(1.0f, 0.5f, 0.0f),   // Оранжевый
+        glm::vec3(0.5f, 0.0f, 1.0f),   // Фиолетовый
+        glm::vec3(0.0f, 0.5f, 0.5f),   // Темно-бирюзовый
+
+        glm::vec3(1.0f, 0.7f, 0.7f),   // Светло-красный
+        glm::vec3(0.7f, 1.0f, 0.7f),   // Светло-зеленый
+        glm::vec3(0.7f, 0.7f, 1.0f),   // Светло-синий
+        
+        glm::vec3(1.0f, 1.0f, 0.7f),   // Светло-желтый
+        glm::vec3(1.0f, 0.7f, 1.0f),   // Светло-пурпурный
+        glm::vec3(0.7f, 1.0f, 1.0f),   // Светло-бирюзовый
+        
+        glm::vec3(1.0f, 0.8f, 0.6f),   // Персиковый
+        glm::vec3(0.8f, 0.7f, 1.0f),   // Лавандовый
+        glm::vec3(0.7f, 0.9f, 0.8f),   // Мятный
+
+        glm::vec3(1.0f, 0.0f, 0.0f),   
+        glm::vec3(0.0f, 1.0f, 0.0f),   
+        glm::vec3(0.0f, 0.0f, 1.0f),   
+        
+        glm::vec3(1.0f, 1.0f, 0.0f),   // Ярко-желтый
+        glm::vec3(1.0f, 0.0f, 1.0f),   // Ярко-пурпурный
+        glm::vec3(0.0f, 1.0f, 1.0f),   // Ярко-бирюзовый
+        
+        glm::vec3(1.0f, 0.5f, 0.0f),   // Оранжевый
+        glm::vec3(0.6f, 0.2f, 1.0f),   // Фиолетовый
+        glm::vec3(0.2f, 0.8f, 0.4f)    // Салатовый
+    };    
+    const float MODEL_SPACING = 1.f;
+    glm::vec3 getGridPosition(int index);
 };

@@ -1,7 +1,7 @@
 #include "Scene3D.h"
 
-float Scene3D::getRandomAngle(){
-    return glm::radians(rand() % 90 - 45.f);
+float Scene3D::getRandomAngle(int limitUp, float range){
+    return glm::radians(rand() % limitUp - range);
 }
 
 glm::vec3 Scene3D::getRandomOffset(float coeff, int pow)
@@ -48,14 +48,26 @@ void Scene3D::loadModel(std::string modelPath)
     addModel(*newModel);
 }
 
-void Scene3D::addModel(Model3D &model)
+void Scene3D::addModel(Model3D &model, bool isRandom)
 {
-    float coefScale = getRandomScaleFactor();
-    glm::vec3 offset = getRandomOffset();
-    glm::vec3 offsetWorld = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
-    float angle = getRandomAngle();
+    float coefScale = 1.f;
+    glm::vec3 offset;
+    float angle;
+
+    if (isRandom){
+        coefScale = getRandomScaleFactor();
+        offset = getRandomOffset();
+        offset = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
+        angle = getRandomAngle();
+    } else {
+        std::cout << "grid\n";
+        coefScale = 0.4f;
+        offset = getGridPosition(models.size());
+        angle = getRandomAngle(20, 10.f);
+    }
+    
     model.scale(coefScale, coefScale, coefScale);
-    model.translate(offsetWorld.x, offsetWorld.y, offsetWorld.z);
+    model.translate(offset.x, offset.y, offset.z);
     model.rotate(angle, Axis::X);
 
     models.push_back(&model);
@@ -125,4 +137,18 @@ void Scene3D::changeDrawingMode()
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {
     glm::vec2 projPos = camera.screenToProj(screenPos);
     camera.zoom(factor, projPos);
+}
+
+glm::vec3 Scene3D::getGridPosition(int index){
+    int nSpaces = index / 6 + 1;
+    int gridPosition = index % 6;
+    switch (gridPosition){
+        case 0: return glm::vec3(nSpaces*MODEL_SPACING, 0.0f, 0.0f);
+        case 1: return glm::vec3(-nSpaces*MODEL_SPACING, 0.0f, 0.0f);   
+        case 2: return glm::vec3(0.0f, nSpaces*MODEL_SPACING, 0.0f);
+        case 3: return glm::vec3(0.0f, -nSpaces*MODEL_SPACING, 0.0f);
+        case 4: return glm::vec3(0.0f, 0.0f, nSpaces*MODEL_SPACING);
+        case 5: return glm::vec3(0.0f, 0.0f, -nSpaces*MODEL_SPACING);
+    }
+    return glm::vec3(0.f);
 }

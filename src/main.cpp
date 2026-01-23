@@ -25,9 +25,9 @@ const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 const std::vector<std::string> modelPaths = {
     "resourses/gear.obj",
-    "resourses/star.obj", 
-    "resourses/cube.obj",
     "resourses/torusknot.obj",
+    "resourses/cube.obj",
+    "resourses/star.obj", 
     "resourses/gem.obj",
     "resourses/icosphere.obj",
     "resourses/cylinder.obj",
