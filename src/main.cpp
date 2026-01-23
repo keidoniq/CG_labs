@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <map>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -13,8 +12,8 @@
 
 std::string controlsInfo();
 std::ostream& operator<<(std::ostream& os, const glm::mat4 &mat);
-std::ostream &operator<<(std::ostream &os, const glm::vec4 &vec);
-std::ostream &operator<<(std::ostream &os, const glm::vec3 &vec);
+std::ostream& operator<<(std::ostream &os, const glm::vec4 &vec);
+std::ostream& operator<<(std::ostream &os, const glm::vec3 &vec);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -22,15 +21,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const int N_DRAWING_MODE = 4;
-
-const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
-    {0.5, 0, 0.5},
-    {0, 0, 0},
-    {0, 0, 1},
-    {0, 1, 0},
-    {1, 0, 0},
-};
 
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
@@ -52,14 +42,10 @@ Vertices* originalVertices = nullptr;
 
 int main()
 {
-
-    // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // glfw window creation
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Model3D", NULL, NULL);
     if (window == NULL)
     {
@@ -77,14 +63,12 @@ int main()
         std::cout << "Failed to initialize GLAD\n";
         return -1;
     }
-    glEnable(GL_DEPTH_TEST);
 
-    ShaderModule triShader(VSHADER_PATH, FSHADER_PATH);
     std::cout << controlsInfo();
+    ShaderModule screenShader(VSHADER_PATH, FSHADER_PATH);
 
-    scene = new Scene3D();
+    scene = new Scene3D(SCR_WIDTH, SCR_HEIGHT, &screenShader);
     scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
-    scene->getCamera().updAxes();
 
     for (auto modelPath: modelPaths){
         ModelLoader loader;
@@ -113,32 +97,14 @@ int main()
         Model3D* newModel = new Model3D(modelVertices, modelFaces, modelEdges, modelAxis);
         scene->addModel(*newModel);
     }
+
     currModel = scene->getCurrModel();
 
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 projection = glm::mat4(1.0f);
     // render loop
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
-        triShader.bind();
-
-        //Upd for shader
-        currModel = scene->getCurrModel();
-        projection = scene->getCamera().getNormalizedProjectionMatrix();
-        view = scene->getCamera().getViewMatrix();
-
-        triShader.setMat4("projection", projection);
-        triShader.setMat4("view", view);
-        triShader.setMat4("model", model);
-
-        glClearColor(0.89, 0.93, 0.98, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        processInput(window);        
         scene->render();
-
-        triShader.release();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -234,24 +200,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_RIGHT:
                 camera.moveRight(moveSpeed);
                 break;
-            // case GLFW_KEY_U:
-            //     camera.pitchRight(moveSpeed);
-            //     break;
-            // case GLFW_KEY_H:
-            //     camera.pitchRight(-moveSpeed);
-            //     break;
-            // case GLFW_KEY_B:
-            //     camera.yawUp(moveSpeed);
-            //     break;
-            // case GLFW_KEY_G:
-            //     camera.yawUp(-moveSpeed);
-            //     break;
-            // case GLFW_KEY_L:
-            //     camera.roll(moveSpeed);
-            //     break;
-            // case GLFW_KEY_M:
-            //     camera.roll(-moveSpeed);
-            //     break;
             // Translate
             case GLFW_KEY_W:
                 currModel->translate(0.0f, 0.5f, 0.0f);
@@ -341,12 +289,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 "N_vector: "<< scene->getCamera().getN() <<
                 "T_vector: "<< scene->getCamera().getT() << '\n';
                 break;
-            case GLFW_KEY_M:
-                int currDrawingMode = currModel->getDrawingMode();
-                currDrawingMode = (currDrawingMode + 1) % N_DRAWING_MODE;
-                currModel->setDrawingMode(DrawingMode(currDrawingMode));
-                std::cout << "Switched to drawing mode: " << currModel->getDrawingMode() << std::endl;
-                break;
         }
     }
 }
@@ -371,7 +313,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
     if (scene) {
-        scene->getCamera().setViewport(width, height);
+        scene->resize(width, height);
     }
 }
 

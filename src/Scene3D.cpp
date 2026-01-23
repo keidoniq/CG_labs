@@ -1,7 +1,6 @@
 #include "Scene3D.h"
 
-float Scene3D::getRandomAngle()
-{
+float Scene3D::getRandomAngle(){
     return glm::radians(rand() % 90 - 45.f);
 }
 
@@ -24,9 +23,8 @@ void Scene3D::addModel(Model3D &model)
 {
     // float coefScale = getRandomScaleFactor();
     // glm::vec3 offset = getRandomOffset();
-    float angle = getRandomAngle();
-
     // glm::vec3 offsetWorld = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
+    float angle = getRandomAngle();
     // model.scale(coefScale, coefScale, coefScale);
     // model.translate(offsetWorld.x, offsetWorld.y, offsetWorld.z);
     model.rotate(angle, Axis::X);
@@ -46,23 +44,28 @@ void Scene3D::updModels() const
     }
 }
 
+void Scene3D::resize(int width, int height){
+    camera.setViewport(width, height);
+    renderer.resize(width, height); 
+}
+
 void Scene3D::clearModels() {
     models.clear();
 }
 
-void Scene3D::render() const {
-    camera.clear();
-    camera.drawAxes();
+void Scene3D::render() {
+    renderer.clear();
+    glDisable(GL_DEPTH_TEST);
+    glClearColor(0.89, 0.93, 0.98, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT); 
 
-    // for(auto m: models){
-    //     m->applyTransformation();
-    //     m->draw(camera.getO());
-    // }
     if (!models.empty()) {
         Model3D* currModel = models[iCurrModel];
         currModel->applyTransformation();
-        currModel->draw(camera.getO());
+        renderer.drawModel(*currModel, camera);
     }
+    renderer.drawAxes(camera, 5.0f);
+    renderer.renderToScreen();
 }
 
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {
