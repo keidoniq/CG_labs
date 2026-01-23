@@ -19,8 +19,9 @@ float Scene3D::getRandomScaleFactor(float coeff)
     return coeff * (rand() % 10 + 5);
 }
 
-int Scene3D::getNextModelIndex()
+int Scene3D::getiNextModel()
 {
+    if (models.empty()) return 0;
     return (iCurrModel + 1) % models.size();
 }
 
@@ -49,12 +50,12 @@ void Scene3D::loadModel(std::string modelPath)
 
 void Scene3D::addModel(Model3D &model)
 {
-    // float coefScale = getRandomScaleFactor();
-    // glm::vec3 offset = getRandomOffset();
-    // glm::vec3 offsetWorld = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
+    float coefScale = getRandomScaleFactor();
+    glm::vec3 offset = getRandomOffset();
+    glm::vec3 offsetWorld = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
     float angle = getRandomAngle();
-    // model.scale(coefScale, coefScale, coefScale);
-    // model.translate(offsetWorld.x, offsetWorld.y, offsetWorld.z);
+    model.scale(coefScale, coefScale, coefScale);
+    model.translate(offsetWorld.x, offsetWorld.y, offsetWorld.z);
     model.rotate(angle, Axis::X);
 
     models.push_back(&model);
@@ -62,7 +63,7 @@ void Scene3D::addModel(Model3D &model)
 
 void Scene3D::toNextModel()
 {
-    iCurrModel = getNextModelIndex();
+    iCurrModel = getiNextModel();
 }
 
 void Scene3D::updModels() const
@@ -87,22 +88,38 @@ void Scene3D::render() {
     glClearColor(0.89, 0.93, 0.98, 1.f);
     glClear(GL_COLOR_BUFFER_BIT); 
     
-    // for(auto m: models){
-    //     m->applyTransformation();
-    //     renderer.drawModel(*m, camera);
-    // }
-
-    if (!models.empty()) {
-        Model3D* currModel = models[iCurrModel];
-        currModel->applyTransformation();
-        renderer.drawModel(*currModel, camera);
-        
-        currModel = models[getNextModelIndex()];
-        currModel->applyTransformation();
-        renderer.drawModel(*currModel, camera);
+    switch(currDrawingMode){
+        case ONE_MODEL: {
+            Model3D* currModel = models.at(iCurrModel);
+            currModel->applyTransformation();
+            renderer.addModelTriangles(*currModel, camera, glm::vec3(0.8f, 0.3f, 0.2f)); 
+            renderer.addModelEdges(*currModel, camera);
+            break;
+        }
+        case ALL_MODELS:{
+            int idColor = 0;
+            for(auto m: models){
+                m->applyTransformation();
+                renderer.addModelTriangles(*m, camera, MODEL_COLORS[idColor]);
+                renderer.addModelEdges(*m, camera);
+                idColor = (idColor + 1) % MODEL_COLORS.size();
+            }
+            break;
+        }
+        default: break;
     }
+
+    renderer.drawElements();
     renderer.drawAxes(camera, 5.0f);
     renderer.renderToScreen();
+}
+
+void Scene3D::changeDrawingMode()
+{
+    switch (currDrawingMode) {
+        case ONE_MODEL: currDrawingMode =  ALL_MODELS; break;
+        case ALL_MODELS: currDrawingMode = ONE_MODEL; break;
+    }
 }
 
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {

@@ -21,7 +21,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 const std::vector<std::string> modelPaths = {
@@ -39,6 +38,7 @@ const std::vector<std::string> modelPaths = {
 Scene3D* scene = nullptr;
 Model3D* currModel = nullptr;
 Vertices* originalVertices = nullptr;
+Drawing_Mode drawingMode = ONE_MODEL;
 
 int main()
 {
@@ -179,10 +179,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_D:
                 currModel->translate(0.5f, 0.0f, 0.0f);
                 break;
-            case GLFW_KEY_Q:
+            case GLFW_KEY_E:
                 currModel->translate(0.0f, 0.0f, -0.5f);
                 break;
-            case GLFW_KEY_E:
+            case GLFW_KEY_Q:
                 currModel->translate(0.0f, 0.0f, 0.5f);
                 break;
                 
@@ -246,6 +246,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     << " models. Model address: " << currModel << std::endl;
                 scene->toNextModel();
                 currModel = scene->getCurrModel();
+                break;
+            case GLFW_KEY_M:
+                scene->changeDrawingMode();
                 break;
             case GLFW_KEY_0:
                 std::cout << "CAMERA INFO:\t" <<

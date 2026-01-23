@@ -17,11 +17,14 @@ private:
 
     std::vector<float> zBuffer;
     std::vector<glm::vec3> colorBuffer;
+    std::vector<ScreenTriangle> trianglesToDraw;
+    std::vector<std::array<glm::vec3, 2>> linesToDraw;
+    std::vector<glm::vec3> trianglesToDrawColors;
+    std::vector<glm::vec3> linesToDrawColors;
 
     GLuint textureID;
     GLuint quadVAO, quadVBO, quadEBO;
     ShaderModule* screenShader = nullptr;    
-    
 public:
     ZBufferRenderer(int w, int h, ShaderModule* shader) : width(w), height(h), screenShader(shader) {
         zBuffer.resize(width * height, std::numeric_limits<float>::max());
@@ -48,35 +51,49 @@ public:
     }
     
     void clear(const glm::vec3& backgroundColor = glm::vec3(0.89f, 0.93f, 0.98f)) {
+        trianglesToDraw.clear();
+        linesToDraw.clear();
+        trianglesToDrawColors.clear();
+        linesToDrawColors.clear();;
         std::fill(zBuffer.begin(), zBuffer.end(), std::numeric_limits<float>::max());
         std::fill(colorBuffer.begin(), colorBuffer.end(), backgroundColor);
     }
 
-    void drawModel(const Model3D& model, const Camera3D& camera) {
+    void addModelTriangles(const Model3D& model, const Camera3D& camera, const glm::vec3& color) {
         std::vector<TriangleFace> worldTriangles = model.getWorldTriangles();
+        
         for (const auto& worldTri : worldTriangles) {
             std::array<glm::vec3, 3> screenTri;
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++)
                 screenTri[i] = camera.worldToScreenWithDepth(worldTri[i]);
-            }
-            rasterizeTriangle(screenTri, glm::vec3(0.8f, 0.3f, 0.2f));
-        }
-        drawEdges(model, camera);
-    }
-    
-    void drawEdges(const Model3D& model, const Camera3D& camera) {
-        auto vertices = model.getVertices();
-        const auto& edges = model.getEdges().getEdges();
 
+            trianglesToDraw.push_back(screenTri);
+            trianglesToDrawColors.push_back(color);
+        }
+    }
+
+    void addModelEdges(const Model3D& model, const Camera3D& camera, const glm::vec3& color = glm::vec3(0.f, 0.f, 0.f)) {
+        VerticesMatrix vertices = model.getVertices();
+        auto& edges = model.getEdges().getEdges();
+        
         for (const auto& edge : edges) {
             glm::vec3 v1 = vertices[edge.getFirst()].getCartesianCoordinates();
             glm::vec3 v2 = vertices[edge.getSecond()].getCartesianCoordinates();
-            std::array<glm::vec3, 2> screenPoints = {
-                camera.worldToScreenWithDepth(v1),
-                camera.worldToScreenWithDepth(v2)
-            };
-            drawLine(screenPoints[0], screenPoints[1], glm::vec3(0.0f, 0.0f, 0.0f));
+            
+            glm::vec3 screen1 = camera.worldToScreenWithDepth(v1);
+            glm::vec3 screen2 = camera.worldToScreenWithDepth(v2);
+            
+            linesToDraw.push_back({screen1, screen2});
+            linesToDrawColors.push_back(color);
         }
+    }
+    
+    void drawElements() {
+        for (size_t i = 0; i < trianglesToDraw.size(); i++)
+            rasterizeTriangle(trianglesToDraw[i], trianglesToDrawColors[i]);
+        
+        for (size_t i = 0; i < linesToDraw.size(); i++)
+            drawLine(linesToDraw[i][0], linesToDraw[i][1], linesToDrawColors[i]);
     }
 
     void renderToScreen() {
