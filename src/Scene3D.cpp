@@ -19,6 +19,11 @@ float Scene3D::getRandomScaleFactor(float coeff)
     return coeff * (rand() % 10 + 5);
 }
 
+int Scene3D::getNextModelIndex()
+{
+    return (iCurrModel + 1) % models.size();
+}
+
 void Scene3D::loadModel(std::string modelPath)
 {
     ModelLoader loader;
@@ -57,7 +62,7 @@ void Scene3D::addModel(Model3D &model)
 
 void Scene3D::toNextModel()
 {
-    iCurrModel = (iCurrModel + 1) % models.size();
+    iCurrModel = getNextModelIndex();
 }
 
 void Scene3D::updModels() const
@@ -89,6 +94,10 @@ void Scene3D::render() {
 
     if (!models.empty()) {
         Model3D* currModel = models[iCurrModel];
+        currModel->applyTransformation();
+        renderer.drawModel(*currModel, camera);
+        
+        currModel = models[getNextModelIndex()];
         currModel->applyTransformation();
         renderer.drawModel(*currModel, camera);
     }

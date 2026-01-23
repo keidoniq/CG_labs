@@ -25,6 +25,7 @@ private:
     float getRandomAngle();
     glm::vec3 getRandomOffset(float coeff = 1e-3, int pow = 3);
     float getRandomScaleFactor(float coeff = 1e-1);
+    int getNextModelIndex();
 public:
     Scene3D(int w, int h, ShaderModule* shader): camera(), renderer(w, h, shader) 
     { srand(time(nullptr)); camera.setViewport(w, h);}
