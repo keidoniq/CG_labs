@@ -66,55 +66,21 @@ int main()
 
     std::cout << controlsInfo();
     ShaderModule screenShader(VSHADER_PATH, FSHADER_PATH);
-
     scene = new Scene3D(SCR_WIDTH, SCR_HEIGHT, &screenShader);
-    scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
-
-    for (auto modelPath: modelPaths){
-        ModelLoader loader;
-        if (!loader.isLoad(modelPath)) {
-            std::cout << "Failed to load model: " << modelPath << std::endl;
-            return -1;
-        }
-        
-        Vertices modelAxis;
-        for (const auto& vertex : loader.vcCoordinates) {
-            modelAxis.addVertex(vertex.x, vertex.y, vertex.z);
-        }
-
-        Vertices modelVertices;
-        for (const auto& vertex : loader.vCoordinates) {
-            modelVertices.addVertex(vertex.x, vertex.y, vertex.z);
-        }
-
-        Faces modelFaces;
-        for (const auto& faceIndices : loader.fIndicesTrn) {
-            modelFaces.addFace(faceIndices[0], faceIndices[3], faceIndices[6]);
-        }
-
-        Edges modelEdges = modelFaces.getEdgesFromFaces();
-
-        Model3D* newModel = new Model3D(modelVertices, modelFaces, modelEdges, modelAxis);
-        scene->addModel(*newModel);
-    }
-
+    for (auto modelPath: modelPaths)
+        scene->loadModel(modelPath);
     currModel = scene->getCurrModel();
-
-    // render loop
-    while (!glfwWindowShouldClose(window))
-    {
+    
+    while (!glfwWindowShouldClose(window)) {
         processInput(window);        
         scene->render();
-
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    //clear
     delete scene;
     delete currModel;
     delete originalVertices;
-
     glfwTerminate();
     return 0;
 }

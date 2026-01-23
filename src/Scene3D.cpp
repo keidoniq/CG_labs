@@ -19,6 +19,29 @@ float Scene3D::getRandomScaleFactor(float coeff)
     return coeff * (rand() % 10 + 5);
 }
 
+void Scene3D::loadModel(std::string modelPath)
+{
+    ModelLoader loader;
+    if (!loader.isLoad(modelPath))
+        std::cout << "Failed to load model: " << modelPath << std::endl;
+    
+    Vertices modelAxis;
+    for (const auto& vertex : loader.vcCoordinates)
+        modelAxis.addVertex(vertex.x, vertex.y, vertex.z);
+
+    Vertices modelVertices;
+    for (const auto& vertex : loader.vCoordinates)
+        modelVertices.addVertex(vertex.x, vertex.y, vertex.z);
+
+    Faces modelFaces;
+    for (const auto& faceIndices : loader.fIndicesTrn)
+        modelFaces.addFace(faceIndices[0], faceIndices[3], faceIndices[6]);
+
+    Edges modelEdges = modelFaces.getEdgesFromFaces();
+    Model3D* newModel = new Model3D(modelVertices, modelFaces, modelEdges, modelAxis);
+    addModel(*newModel);
+}
+
 void Scene3D::addModel(Model3D &model)
 {
     // float coefScale = getRandomScaleFactor();

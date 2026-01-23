@@ -2,6 +2,7 @@
 #pragma once
 #include "Camera3D.h"
 #include "Model3D.h"
+#include "ModelLoader.h"
 #include <vector>
 #include <cstdlib>
 #include <ctime>
@@ -25,8 +26,10 @@ private:
     glm::vec3 getRandomOffset(float coeff = 1e-3, int pow = 3);
     float getRandomScaleFactor(float coeff = 1e-1);
 public:
-    Scene3D(int w, int h, ShaderModule* shader): camera(), renderer(w, h, shader) { srand(time(nullptr)); }
+    Scene3D(int w, int h, ShaderModule* shader): camera(), renderer(w, h, shader) 
+    { srand(time(nullptr)); camera.setViewport(w, h);}
     
+    void loadModel(std::string modelPath);
     void addModel(Model3D& model);
     void toNextModel();
     void clearModels();
