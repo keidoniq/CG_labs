@@ -58,6 +58,11 @@ void Scene3D::render() {
     glDisable(GL_DEPTH_TEST);
     glClearColor(0.89, 0.93, 0.98, 1.f);
     glClear(GL_COLOR_BUFFER_BIT); 
+    
+    // for(auto m: models){
+    //     m->applyTransformation();
+    //     renderer.drawModel(*m, camera);
+    // }
 
     if (!models.empty()) {
         Model3D* currModel = models[iCurrModel];
