@@ -34,8 +34,13 @@ private:
     int getiNextCamera();
 public:
     Scene3D(int w, int h, ShaderModule* shader): renderer(w, h, shader) { 
-        srand(time(nullptr)); 
-        Camera3D* defaultCamera = new Camera3D(w, h);
+        srand(time(nullptr));
+        Quaternion q = Quaternion::fromEulerAngles(0.f, 0.f, 0.f);
+        Camera3D* defaultCamera = new Camera3D(w, h,
+            glm::vec3(1.5f, 1.f, 1.f),
+            // glm::vec3(0.f, 1.f, 0.f),
+            // glm::vec3(0.f, 0.f, 3.f)
+            Quaternion::fromEulerAngles(0.f, 0.f, 0.f));
         addCamera(*defaultCamera);
     }
     
@@ -50,6 +55,12 @@ public:
         const glm::vec3& T_vector = glm::vec3(0.f, 1.f, 0.f),
         const glm::vec3& N_vector = glm::vec3(0.f, 0.f, 3.f),
         float F = 7.f, float D = 10.f, 
+        float L = -5.f, float R = 5.f, float B = -5.f, float T = 5.f);
+    
+    void addCamera(int width, int height,
+        const glm::vec3& O_vector = glm::vec3(1.5f, 1.f, 1.f),
+        Quaternion orientation = Quaternion::fromEulerAngles(0.f, 0.f, 0.f),
+        float F = 7.f, float D = 10.f,
         float L = -5.f, float R = 5.f, float B = -5.f, float T = 5.f);
     void addCamera(Camera3D& newCamera);
     void toNextCamera();
@@ -105,6 +116,6 @@ private:
         glm::vec3(0.6f, 0.2f, 1.0f),   // Фиолетовый
         glm::vec3(0.2f, 0.8f, 0.4f)    // Салатовый
     };    
-    const float MODEL_SPACING = 1.f;
+    const float MODEL_SPACING = 1.5f;
     glm::vec3 getGridPosition(int index);
 };

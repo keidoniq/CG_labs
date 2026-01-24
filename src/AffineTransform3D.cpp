@@ -76,6 +76,7 @@ glm::mat4 AffineTransform3D::shearing(float shx, float shy, float shz) {
     );
 }
 
+//enum flag
 glm::mat4 AffineTransform3D::reflection(bool reflectX, bool reflectY, bool reflectZ) {
     float sx = reflectX ? 1.0f : -1.0f;
     float sy = reflectY ? 1.0f : -1.0f;

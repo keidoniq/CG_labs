@@ -86,7 +86,15 @@ void Scene3D::toNextModel()
 void Scene3D::addCamera(int width, int height, const glm::vec3 &O_vector, const glm::vec3 &T_vector, const glm::vec3 &N_vector, float F, float D, float L, float R, float B, float T)
 {
     Camera3D* newCamera = new Camera3D(
-        width, height, N_vector, O_vector, T_vector,                // T vector (up)
+        width, height, O_vector, T_vector, N_vector, 
+        D, F, L, R, B, T);
+    addCamera(*newCamera);
+}
+
+void Scene3D::addCamera(int width, int height, const glm::vec3 &O_vector, Quaternion orientation, float F, float D, float L, float R, float B, float T)
+{
+    Camera3D* newCamera = new Camera3D(
+        width, height, O_vector, orientation, 
         D, F, L, R, B, T);
     addCamera(*newCamera);
 }

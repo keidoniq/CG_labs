@@ -74,14 +74,14 @@ int main()
         glm::vec3 N_vector = glm::vec3(0.f, 0.f, 3.f),
     */
     scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // XZ
-        glm::vec3(1.f, 15.f, 1.f),
+        glm::vec3(1.f, 5.f, 1.f),
         glm::vec3(0.f, 0.f, 1.f),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // ZY
         glm::vec3(4.f, 1.f, 1.f),
         glm::vec3(0.f, 1.f, 0.f),
-        glm::vec3(1.f, 0.f, 0.f)
+        glm::vec3(-1.f, 0.f, 0.f)
     );
     scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // XY
         glm::vec3(0.f, 0.f, 1.5f),
@@ -89,9 +89,9 @@ int main()
         glm::vec3(0.f, 0.f, 1.f)             
     );
     scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // ZX
-        glm::vec3(1.f, 5.f, 1.f),
-        glm::vec3(0.f, 0.f, 1.f),
-        glm::vec3(0.f, 1.f, 0.f)
+        glm::vec3(1.f, 1.5f, 1.f),
+        glm::vec3(1.f, 0.f, 0.f),
+        glm::vec3(0.f, -1.f, 0.f)
     );
 
     for (auto modelPath: modelPaths)
@@ -179,7 +179,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 std::cout << "\nO - currF: "<< currF << " new: " << currCamera->getFocusDistance();
                 break;
             case GLFW_KEY_K:
-                currCamera->zoomByFocusDistance(0.8); //done
+                currCamera->zoomByFocusDistance(0.8);
                 std::cout << "\nK - currF: "<< currF << " new: " << currCamera->getFocusDistance();
                 break;
             case GLFW_KEY_UP:
@@ -193,6 +193,30 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
             case GLFW_KEY_RIGHT:
                 currCamera->moveRight(moveSpeed);
+                break;
+            case GLFW_KEY_U:
+                currCamera->moveUp(moveSpeed);
+                break;
+            case GLFW_KEY_H:
+                currCamera->moveDown(moveSpeed);
+                break;
+            case GLFW_KEY_1:
+                currCamera->yaw(glm::radians(15.f));
+                break;
+            case GLFW_KEY_2:
+                currCamera->roll(glm::radians(15.f));
+                break;
+            case GLFW_KEY_3:
+                currCamera->pitch(glm::radians(15.f));
+                break;
+            case GLFW_KEY_4://rotate
+                currCamera->rotateLocalX(glm::radians(15.f));
+                break;
+            case GLFW_KEY_5:
+                currCamera->rotateLocalY(glm::radians(15.f));
+                break;
+            case GLFW_KEY_6:
+                currCamera->rotateLocalZ(glm::radians(15.f));
                 break;
             // Translate
             case GLFW_KEY_W:
@@ -243,24 +267,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
                 
             //Reflect
-            case GLFW_KEY_1:
-                currModel->reflect(true, false, false); // Reflect X
-                break;
-            case GLFW_KEY_2:
-                currModel->reflect(false, true, false); // Reflect Y
-                break;
-            case GLFW_KEY_3:
-                currModel->reflect(false, false, true); // Reflect Z
-                break;
-            case GLFW_KEY_4:
-                currModel->reflect(true, true, false); // Reflect XY
-                break;
-            case GLFW_KEY_5:
-                currModel->reflect(true, false, true); // Reflect XZ
-                break;
-            case GLFW_KEY_6:
-                currModel->reflect(false, true, true); // Reflect YZ
-                break;
+            // case GLFW_KEY_1:
+            //     currModel->reflect(true, false, false); // Reflect X
+            //     break;
+            // case GLFW_KEY_2:
+            //     currModel->reflect(false, true, false); // Reflect Y
+            //     break;
+            // case GLFW_KEY_3:
+            //     currModel->reflect(false, false, true); // Reflect Z
+            //     break;
+            // case GLFW_KEY_4:
+            //     currModel->reflect(true, true, false); // Reflect XY
+            //     break;
+            // case GLFW_KEY_5:
+            //     currModel->reflect(true, false, true); // Reflect XZ
+            //     break;
+            // case GLFW_KEY_6:
+            //     currModel->reflect(false, true, true); // Reflect YZ
+            //     break;
                 
             case GLFW_KEY_T:
                 currModel->resetTransformation();
@@ -276,7 +300,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 currModel = scene->getCurrModel();
                 break;
             case GLFW_KEY_C:
-                std::cout << "Switched to camera index: " << scene->getiCurrCamera()+1
+                std::cout << "Switched from camera index: " << scene->getiCurrCamera()+1
                     << " out of " << scene->getNCameras() 
                     << " cameras. Camera address: " << currCamera << std::endl;
                 scene->toNextCamera();
@@ -289,9 +313,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 std::cout << "CAMERA INFO:\t" <<
                 "F=" << currCamera->getFocusDistance() <<
                 " D=" << currCamera->getDistancce() <<
-                "\nO_vector: "<< currCamera->getO() <<
-                "N_vector: "<< currCamera->getN() <<
-                "T_vector: "<< currCamera->getT() << '\n';
+                "Position: "<< currCamera->getO() <<
+                "Forward: " << currCamera->getForward() <<
+                "Up: " << currCamera->getUp() <<
+                "Right: " << currCamera->getRight() << 
+                "Orientation: " << currCamera->getOrientation()<< "\n";
                 break;
         }
     }
