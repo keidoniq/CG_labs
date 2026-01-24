@@ -15,18 +15,31 @@ private:
     glm::vec3 O_vector, N_vector, T_vector;
     float F, D;
     int W, H;
-
     float L, R, B, T;
+
+    glm::vec3 default_O_vector, default_N_vector, default_T_vector;
+    float default_L, default_R, default_B, default_T, default_F, default_D;
+    int default_W, default_H;
     void maintainAspectRatio();
 public:
-    Camera3D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, float B = -DEFAULT_DIST, float T = DEFAULT_DIST, 
-        int W = 800, int H = 600,
+    Camera3D(int W = 800, int H = 600,
         glm::vec3 N_vector = glm::vec3(0.f, 0.f, 3.f),
         glm::vec3 O_vector = glm::vec3(1.5f, 1.f, 1.f),
         glm::vec3 T_vector = glm::vec3(0.f, 1.f, 0.f),
-        float distance = 10.f, float f = 7.f):
+        float distance = 10.f, float f = 7.f,
+        float L = -DEFAULT_DIST, float R = DEFAULT_DIST, 
+        float B = -DEFAULT_DIST, float T = DEFAULT_DIST):
         L(L), R(R), B(B), T(T), W(W), H(H), D(distance), F(f),
-        O_vector(O_vector), N_vector(N_vector), T_vector(T_vector) {};
+        O_vector(O_vector), N_vector(N_vector), T_vector(T_vector) {
+            setViewport(W, H);
+            default_O_vector = O_vector;
+            default_T_vector = T_vector;
+            default_N_vector = N_vector;
+            default_L = L; default_R = R; default_B = B; default_T = T; 
+            default_F = F; default_D = D;
+            default_W = W; default_H = H;
+
+        };
     
     void zoom(float factor, const glm::vec2& screenPoint);
     void zoomByFocusDistance(float factor){ F *= factor; }

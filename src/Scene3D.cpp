@@ -25,6 +25,12 @@ int Scene3D::getiNextModel()
     return (iCurrModel + 1) % models.size();
 }
 
+int Scene3D::getiNextCamera()
+{
+    if (cameras.empty()) return 0;
+    return (iCurCamera + 1) % cameras.size();
+}
+
 void Scene3D::loadModel(std::string modelPath)
 {
     ModelLoader loader;
@@ -57,10 +63,9 @@ void Scene3D::addModel(Model3D &model, bool isRandom)
     if (isRandom){
         coefScale = getRandomScaleFactor();
         offset = getRandomOffset();
-        offset = camera.normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
+        offset = cameras[iCurCamera]->normalizedToWorld(glm::vec4(offset.x,offset.y,offset.z,1));
         angle = getRandomAngle();
     } else {
-        std::cout << "grid\n";
         coefScale = 0.4f;
         offset = getGridPosition(models.size());
         angle = getRandomAngle(20, 10.f);
@@ -78,6 +83,24 @@ void Scene3D::toNextModel()
     iCurrModel = getiNextModel();
 }
 
+void Scene3D::addCamera(int width, int height, const glm::vec3 &O_vector, const glm::vec3 &T_vector, const glm::vec3 &N_vector, float F, float D, float L, float R, float B, float T)
+{
+    Camera3D* newCamera = new Camera3D(
+        width, height, N_vector, O_vector, T_vector,                // T vector (up)
+        D, F, L, R, B, T);
+    addCamera(*newCamera);
+}
+
+void Scene3D::addCamera(Camera3D &newCamera)
+{
+    cameras.push_back(&newCamera);
+}
+
+void Scene3D::toNextCamera()
+{
+    iCurCamera = getiNextCamera();
+}
+
 void Scene3D::updModels() const
 {
     for(auto m: models){
@@ -86,7 +109,9 @@ void Scene3D::updModels() const
 }
 
 void Scene3D::resize(int width, int height){
-    camera.setViewport(width, height);
+    for(const auto& c: cameras){
+        c->setViewport(width, height);
+    }
     renderer.resize(width, height); 
 }
 
@@ -94,26 +119,32 @@ void Scene3D::clearModels() {
     models.clear();
 }
 
+void Scene3D::clearCameras() {
+    cameras.clear();
+}
+
 void Scene3D::render() {
     renderer.clear();
     glDisable(GL_DEPTH_TEST);
     glClearColor(0.89, 0.93, 0.98, 1.f);
     glClear(GL_COLOR_BUFFER_BIT); 
+
+    Camera3D* currCamera = cameras.at(iCurCamera);
     
     switch(currDrawingMode){
         case ONE_MODEL: {
             Model3D* currModel = models.at(iCurrModel);
             currModel->applyTransformation();
-            renderer.addModelTriangles(*currModel, camera, glm::vec3(0.8f, 0.3f, 0.2f)); 
-            renderer.addModelEdges(*currModel, camera);
+            renderer.addModelTriangles(*currModel, *currCamera, glm::vec3(0.8f, 0.3f, 0.2f)); 
+            renderer.addModelEdges(*currModel, *currCamera);
             break;
         }
         case ALL_MODELS:{
             int idColor = 0;
             for(auto m: models){
                 m->applyTransformation();
-                renderer.addModelTriangles(*m, camera, MODEL_COLORS[idColor]);
-                renderer.addModelEdges(*m, camera);
+                renderer.addModelTriangles(*m, *currCamera, MODEL_COLORS[idColor]);
+                renderer.addModelEdges(*m, *currCamera);
                 idColor = (idColor + 1) % MODEL_COLORS.size();
             }
             break;
@@ -122,7 +153,7 @@ void Scene3D::render() {
     }
 
     renderer.drawElements();
-    renderer.drawAxes(camera, 5.0f);
+    renderer.drawAxes(*currCamera, 5.0f);
     renderer.renderToScreen();
 }
 
@@ -135,8 +166,8 @@ void Scene3D::changeDrawingMode()
 }
 
 void Scene3D::handleZoom(float factor, const glm::vec2& screenPos) {
-    glm::vec2 projPos = camera.screenToProj(screenPos);
-    camera.zoom(factor, projPos);
+    glm::vec2 projPos = cameras[iCurCamera]->screenToProj(screenPos);
+    cameras[iCurCamera]->zoom(factor, projPos);
 }
 
 glm::vec3 Scene3D::getGridPosition(int index){

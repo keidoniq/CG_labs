@@ -36,6 +36,7 @@ const std::vector<std::string> modelPaths = {
 };
 
 Scene3D* scene = nullptr;
+Camera3D* currCamera = nullptr;
 Model3D* currModel = nullptr;
 Vertices* originalVertices = nullptr;
 Drawing_Mode drawingMode = ONE_MODEL;
@@ -57,20 +58,46 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD\n";
         return -1;
     }
-
     std::cout << controlsInfo();
+
     ShaderModule screenShader(VSHADER_PATH, FSHADER_PATH);
     scene = new Scene3D(SCR_WIDTH, SCR_HEIGHT, &screenShader);
+    currCamera = scene->getCurrCamera();
+    /*
+        glm::vec3 O_vector = glm::vec3(1.5f, 1.f, 1.f),
+        glm::vec3 T_vector = glm::vec3(0.f, 1.f, 0.f),
+        glm::vec3 N_vector = glm::vec3(0.f, 0.f, 3.f),
+    */
+    scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // XZ
+        glm::vec3(1.f, 15.f, 1.f),
+        glm::vec3(0.f, 0.f, 1.f),
+        glm::vec3(0.f, -1.f, 0.f)
+    );
+    scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // ZY
+        glm::vec3(4.f, 1.f, 1.f),
+        glm::vec3(0.f, 1.f, 0.f),
+        glm::vec3(1.f, 0.f, 0.f)
+    );
+    scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // XY
+        glm::vec3(0.f, 0.f, 1.5f),
+        glm::vec3(0.f, 1.f, 0.f),           
+        glm::vec3(0.f, 0.f, 1.f)             
+    );
+    scene->addCamera(SCR_WIDTH, SCR_HEIGHT, // ZX
+        glm::vec3(1.f, 5.f, 1.f),
+        glm::vec3(0.f, 0.f, 1.f),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+
     for (auto modelPath: modelPaths)
         scene->loadModel(modelPath);
     currModel = scene->getCurrModel();
-    
+
     while (!glfwWindowShouldClose(window)) {
         processInput(window);        
         scene->render();
@@ -79,6 +106,7 @@ int main()
     }
 
     delete scene;
+    delete currCamera;
     delete currModel;
     delete originalVertices;
     glfwTerminate();
@@ -123,6 +151,7 @@ std::string controlsInfo() {
        
        << "SYSTEM:\n"
        << "  N - Go to the next model\n"
+       << "  C - Go to the next camera\n"
        << "  T - Reset all model transformations\n"
        << "  P - Reset camera to default position\n"
        << "  M - Change drawing mode\n"
@@ -141,30 +170,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     glm::vec3 p3 = centerAxis[3].getCartesianCoordinates();
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        Camera3D& camera = scene->getCamera();
         float moveSpeed = 0.2f;
-        float currF = scene->getCamera().getFocusDistance();
+        float currF = currCamera->getFocusDistance();
         switch (key) {
             // CAMERA MOVEMENT CONTROLS
             case GLFW_KEY_O:
-                scene->getCamera().zoomByFocusDistance(1.25);
-                std::cout << "\nO - currF: "<< currF << " new: " << scene->getCamera().getFocusDistance();
+                currCamera->zoomByFocusDistance(1.25);
+                std::cout << "\nO - currF: "<< currF << " new: " << currCamera->getFocusDistance();
                 break;
             case GLFW_KEY_K:
-                scene->getCamera().zoomByFocusDistance(0.8); //done
-                std::cout << "\nK - currF: "<< currF << " new: " << scene->getCamera().getFocusDistance();
+                currCamera->zoomByFocusDistance(0.8); //done
+                std::cout << "\nK - currF: "<< currF << " new: " << currCamera->getFocusDistance();
                 break;
             case GLFW_KEY_UP:
-                camera.moveForward(moveSpeed);
+                currCamera->moveForward(moveSpeed);
                 break;
             case GLFW_KEY_DOWN:
-                camera.moveBackward(moveSpeed);
+                currCamera->moveBackward(moveSpeed);
                 break;
             case GLFW_KEY_LEFT:
-                camera.moveLeft(moveSpeed);
+                currCamera->moveLeft(moveSpeed);
                 break;
             case GLFW_KEY_RIGHT:
-                camera.moveRight(moveSpeed);
+                currCamera->moveRight(moveSpeed);
                 break;
             // Translate
             case GLFW_KEY_W:
@@ -238,7 +266,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 currModel->resetTransformation();
                 break;
             case GLFW_KEY_P:
-                scene->getCamera().resetCamera();
+                currCamera->resetCamera();
                 break;
             case GLFW_KEY_N:
                 std::cout << "Switched to model index: " << scene->getiCurrModel()+1
@@ -247,16 +275,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 scene->toNextModel();
                 currModel = scene->getCurrModel();
                 break;
+            case GLFW_KEY_C:
+                std::cout << "Switched to camera index: " << scene->getiCurrCamera()+1
+                    << " out of " << scene->getNCameras() 
+                    << " cameras. Camera address: " << currCamera << std::endl;
+                scene->toNextCamera();
+                currCamera = scene->getCurrCamera();
+                break;
             case GLFW_KEY_M:
                 scene->changeDrawingMode();
                 break;
             case GLFW_KEY_0:
                 std::cout << "CAMERA INFO:\t" <<
-                "F=" << scene->getCamera().getFocusDistance() <<
-                " D=" << scene->getCamera().getDistancce() <<
-                "\nO_vector: "<< scene->getCamera().getO() <<
-                "N_vector: "<< scene->getCamera().getN() <<
-                "T_vector: "<< scene->getCamera().getT() << '\n';
+                "F=" << currCamera->getFocusDistance() <<
+                " D=" << currCamera->getDistancce() <<
+                "\nO_vector: "<< currCamera->getO() <<
+                "N_vector: "<< currCamera->getN() <<
+                "T_vector: "<< currCamera->getT() << '\n';
                 break;
         }
     }

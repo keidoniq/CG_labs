@@ -21,29 +21,46 @@ enum Drawing_Mode {
 class Scene3D {
 private:
     ZBufferRenderer renderer;
-    Camera3D camera;
+    std::vector<Camera3D*> cameras;
     std::vector<Model3D*> models;
     int iCurrModel = 0;
+    int iCurCamera = 0;
     Drawing_Mode currDrawingMode = Drawing_Mode::ONE_MODEL;
 
     float getRandomAngle(int limitUp = 90, float range = 45.f);
     glm::vec3 getRandomOffset(float coeff = 1e-3, int pow = 3);
     float getRandomScaleFactor(float coeff = 1e-1);
     int getiNextModel();
+    int getiNextCamera();
 public:
-    Scene3D(int w, int h, ShaderModule* shader): camera(), renderer(w, h, shader) 
-    { srand(time(nullptr)); camera.setViewport(w, h);}
+    Scene3D(int w, int h, ShaderModule* shader): renderer(w, h, shader) { 
+        srand(time(nullptr)); 
+        Camera3D* defaultCamera = new Camera3D(w, h);
+        addCamera(*defaultCamera);
+    }
     
     void loadModel(std::string modelPath);
     void addModel(Model3D& model, bool isRandom = false);
     void toNextModel();
     void clearModels();
     void updModels() const;
+    
+    void addCamera(int width, int height,
+        const glm::vec3& O_vector = glm::vec3(1.5f, 1.f, 1.f),
+        const glm::vec3& T_vector = glm::vec3(0.f, 1.f, 0.f),
+        const glm::vec3& N_vector = glm::vec3(0.f, 0.f, 3.f),
+        float F = 7.f, float D = 10.f, 
+        float L = -5.f, float R = 5.f, float B = -5.f, float T = 5.f);
+    void addCamera(Camera3D& newCamera);
+    void toNextCamera();
+    void clearCameras();
 
     Model3D* getCurrModel() { return models[iCurrModel];}
-    Camera3D& getCamera() { return camera; }
     int getNModels() { return models.size(); }
     int getiCurrModel() { return iCurrModel; }
+    Camera3D* getCurrCamera() { return cameras[iCurCamera]; }
+    int getNCameras() { return cameras.size(); }
+    int getiCurrCamera() { return iCurCamera; }
     
     void render();
     void changeDrawingMode();

@@ -31,16 +31,12 @@ void Camera3D::zoom(float factor, const glm::vec2& projPoint) {
 }
 
 void Camera3D::resetCamera() {
-    O_vector = glm::vec3(1.5f, 1.f, 1.f);
-    N_vector = glm::vec3(0.f, 0.f, 3.f);
-    T_vector = glm::vec3(0.f, 1.f, 0.f);
-    D = 10.f;
-    F = 7.f;
-
-    L = -DEFAULT_DIST;
-    R = DEFAULT_DIST;
-    B = -DEFAULT_DIST;
-    T = DEFAULT_DIST;
+    O_vector = default_O_vector;
+    N_vector = default_N_vector;
+    T_vector = default_T_vector;
+    D = default_D;    F = default_F;
+    L = default_L;    R = default_R;
+    B = default_B;    T = default_T;
     maintainAspectRatio();
 }
 
