@@ -212,6 +212,7 @@ public:
                 );
             }
         }
+        return Quaternion::fromEulerAngles(0.f, 0.f, 0.f);
     }
     
     float getW() const { return w; }

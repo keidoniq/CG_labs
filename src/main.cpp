@@ -210,13 +210,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 currCamera->pitch(glm::radians(15.f));
                 break;
             case GLFW_KEY_4://rotate
-                currCamera->rotateLocalX(glm::radians(15.f));
+                currCamera->rotateAroundLocalAxis(glm::radians(15.f), Axis::X);
                 break;
             case GLFW_KEY_5:
-                currCamera->rotateLocalY(glm::radians(15.f));
+                currCamera->rotateAroundLocalAxis(glm::radians(15.f), Axis::Y);
                 break;
             case GLFW_KEY_6:
-                currCamera->rotateLocalZ(glm::radians(15.f));
+                currCamera->rotateAroundLocalAxis(glm::radians(15.f), Axis::Z);
                 break;
             // Translate
             case GLFW_KEY_W:
@@ -248,13 +248,25 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_Z:
                 currModel->rotate(glm::radians(15.0), Axis::Z);
                 break;
+            // case GLFW_KEY_V:
+            //     currModel->yaw(glm::radians(15.f));
+            //     break;
+            // case GLFW_KEY_L:
+            //     currModel->yaw(glm::radians(15.f));
+            //     break;
+            // case GLFW_KEY_B:
+            //     currModel->roll(glm::radians(15.f));
+            //     break;
             case GLFW_KEY_7:
+                //currModel->rotateAroundLocalAxis(glm::radians(15.f), Axis::X);
                 currModel->rotateWithAxis(p0, p1, glm::radians(5.0)); 
                 break;
             case GLFW_KEY_8:
+                //currModel->rotateAroundLocalAxis(glm::radians(15.f), Axis::Y);
                 currModel->rotateWithAxis(p0, p2, glm::radians(5.0)); 
                 break;
             case GLFW_KEY_9:
+                //currModel->rotateAroundLocalAxis(glm::radians(15.f), Axis::Z);
                 currModel->rotateWithAxis(p0, p3, glm::radians(5.0)); 
                 break;
 
@@ -308,6 +320,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
             case GLFW_KEY_M:
                 scene->changeDrawingMode();
+                break;
+            case GLFW_KEY_G:
+                std::cout << "Model Axis:\n";
+                for (const auto& axis: currModel->getAxis())
+                    std::cout << axis.getCartesianCoordinates() << '\n';
                 break;
             case GLFW_KEY_0:
                 std::cout << "CAMERA INFO:\t" <<

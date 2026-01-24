@@ -1,20 +1,18 @@
 #include "Camera3D.h"
 
 void Camera3D::lookAt(const glm::vec3& target) {
-    // Вычисляем новое направление "вперед"
     glm::vec3 newForward = glm::normalize(target - O_vector);
     
-    // Если цель прямо над или под камерой
+    // прямо над или под камерой
     if (glm::length(newForward) < 0.001f) {
         newForward = glm::vec3(0.0f, 0.0f, -1.0f);
     }
     
-    // Вычисляем кватернион вращения
     glm::vec3 worldForward = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 rotationAxis = glm::normalize(glm::cross(worldForward, newForward));
     
     if (glm::length(rotationAxis) < 0.001f) {
-        // Если векторы коллинеарны (направление вверх или вниз)
+        // векторы коллинеарны
         rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
     }
     
@@ -25,26 +23,10 @@ void Camera3D::lookAt(const glm::vec3& target) {
     orientation.normalize();
 }
 
-// Создание матрицы вида
 glm::mat4 Camera3D::getViewMatrix() const {
     glm::vec3 forward = getForward();
     glm::vec3 up = getUp();
     return glm::lookAt(O_vector, O_vector + forward, up);
-}
-
-glm::vec3 Camera3D::getForward() const {
-    glm::vec3 localForward(0.0f, 0.0f, -1.0f);
-    return glm::normalize(orientation.rotateVector(localForward));
-}
-
-glm::vec3 Camera3D::getUp() const {
-    glm::vec3 localUp(0.0f, 1.0f, 0.0f);
-    return glm::normalize(orientation.rotateVector(localUp));
-}
-
-glm::vec3 Camera3D::getRight() const {
-    glm::vec3 localRight(1.0f, 0.0f, 0.0f);
-    return glm::normalize(orientation.rotateVector(localRight));
 }
 
 void Camera3D::setViewport(int width, int height)
@@ -79,7 +61,7 @@ void Camera3D::zoom(float factor, const glm::vec2& projPoint) {
 
 void Camera3D::resetCamera() {
     O_vector = default_O_vector;
-    orientation = default_orientation;
+    resetOrientation();
     D = default_D;    F = default_F;
     L = default_L;    R = default_R;
     B = default_B;    T = default_T;
@@ -108,30 +90,6 @@ void Camera3D::moveUp(float distance) {
 
 void Camera3D::moveDown(float distance) {
     moveUp(-distance);
-}
-
-void Camera3D::rotate(float angle, const glm::vec3& axis) {
-    Quaternion delta = Quaternion::fromAngleAxis(angle, axis);
-    orientation = delta * orientation;
-    orientation.normalize();
-}
-
-void Camera3D::rotateLocalX(float angle) {
-    Quaternion delta = Quaternion::fromAngleAxis(angle, getRight());
-    orientation = delta * orientation;
-    orientation.normalize();
-}
-
-void Camera3D::rotateLocalY(float angle) {
-    Quaternion delta = Quaternion::fromAngleAxis(angle, getUp());
-    orientation = delta * orientation;
-    orientation.normalize();
-}
-
-void Camera3D::rotateLocalZ(float angle) {
-    Quaternion delta = Quaternion::fromAngleAxis(angle, getForward());
-    orientation = delta * orientation;
-    orientation.normalize();
 }
 
 glm::vec2 Camera3D::normalizedToScreen(const glm::vec4& normalizedPos) const {
