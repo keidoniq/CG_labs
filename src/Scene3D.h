@@ -38,9 +38,8 @@ public:
         Quaternion q = Quaternion::fromEulerAngles(0.f, 0.f, 0.f);
         Camera3D* defaultCamera = new Camera3D(w, h,
             glm::vec3(1.5f, 1.f, 1.f),
-            // glm::vec3(0.f, 1.f, 0.f),
-            // glm::vec3(0.f, 0.f, 3.f)
-            Quaternion::fromEulerAngles(0.f, 0.f, 0.f));
+            Quaternion::fromEulerAngles(0.f, 0.f, 0.f)
+        );
         addCamera(*defaultCamera);
     }
     

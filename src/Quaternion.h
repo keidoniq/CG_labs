@@ -93,41 +93,6 @@ public:
         return glm::vec3(result.x, result.y, result.z);
     }
     
-    static Quaternion lerp(const Quaternion& q1, const Quaternion& q2, float t) {
-        return Quaternion(
-            q1.w + (q2.w - q1.w) * t,
-            q1.x + (q2.x - q1.x) * t,
-            q1.y + (q2.y - q1.y) * t,
-            q1.z + (q2.z - q1.z) * t
-        ).normalized();
-    }
-    
-    static Quaternion slerp(const Quaternion& q1, const Quaternion& q2, float t) {
-        float dot = q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z;
-        
-        // Если dot отрицательный, инвертируем один из кватернионов
-        Quaternion q2_adj = q2;
-        if (dot < 0) {
-            dot = -dot;
-            q2_adj = q2 * -1.0f;
-        }
-        
-        // Если кватернионы очень близки => LERP
-        if (dot > 0.9995f) {
-            return lerp(q1, q2_adj, t).normalized();
-        }
-        
-        float theta_0 = acos(dot);
-        float theta = theta_0 * t;
-        float sin_theta = sin(theta);
-        float sin_theta_0 = sin(theta_0);
-        
-        float s1 = cos(theta) - dot * sin_theta / sin_theta_0;
-        float s2 = sin_theta / sin_theta_0;
-        
-        return (q1 * s1 + q2_adj * s2).normalized();
-    }
-    
     glm::mat4 toMatrix() const {
         Quaternion q = normalized();
         
@@ -147,30 +112,6 @@ public:
             glm::vec4(2 * (xz + yw), 2 * (yz - xw), 1 - 2 * (xx + yy), 0),
             glm::vec4(0, 0, 0, 1)
         );
-    }
-    
-    // Получение углов Эйлера
-    glm::vec3 toEulerAngles() const {
-        Quaternion q = this->normalized();
-        
-        // pitch (x-axis rotation)
-        float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
-        float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
-        float pitch = atan2(sinr_cosp, cosr_cosp);
-        
-        // yaw (y-axis rotation)
-        float sinp = 2.0f * (q.w * q.y - q.z * q.x);
-        if (fabs(sinp) >= 1.0f)
-            sinp = copysign(1.0f, sinp); 
-        else
-            sinp = asin(sinp);
-        
-        // roll (z-axis rotation)
-        float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
-        float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
-        float roll = atan2(siny_cosp, cosy_cosp);
-        
-        return glm::vec3(pitch, sinp, roll);
     }
 
     static Quaternion fromRotationMatrix(const glm::mat4& m) {

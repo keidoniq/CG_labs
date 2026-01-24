@@ -88,12 +88,13 @@ public:
         }
     }
     
-    void drawElements() {
+    void drawElements(bool drawEdges = true) {
         for (size_t i = 0; i < trianglesToDraw.size(); i++)
             rasterizeTriangle(trianglesToDraw[i], trianglesToDrawColors[i]);
         
-        for (size_t i = 0; i < linesToDraw.size(); i++)
-            drawLine(linesToDraw[i][0], linesToDraw[i][1], linesToDrawColors[i]);
+        if(drawEdges)
+            for (size_t i = 0; i < linesToDraw.size(); i++)
+                drawLine(linesToDraw[i][0], linesToDraw[i][1], linesToDrawColors[i]);
     }
 
     void renderToScreen() {
@@ -127,9 +128,7 @@ public:
     
     
 private:
-    void rasterizeTriangle(const ScreenTriangle& tri, const glm::vec3& color) {
-        float minDepth = 0.f;
-        float maxDepth = 20.f;
+    void rasterizeTriangle(const ScreenTriangle& tri, const glm::vec3& color) { 
         //bounding box
         int minX = std::max(0, (int)std::floor(std::min({tri[0].x, tri[1].x, tri[2].x})));
         int minY = std::max(0, (int)std::floor(std::min({tri[0].y, tri[1].y, tri[2].y})));
@@ -170,7 +169,7 @@ private:
         int sy = (y1 < y2) ? 1 : -1;
         int err = dx - dy;
         
-        while (true) {
+        while (x1 != x2 || y1 != y2) {
             if (x1 >= 0 && x1 < width && y1 >= 0 && y1 < height) {
                 int idx = y1 * width + x1;
                 float t = glm::length(glm::vec2(x1 - p1.x, y1 - p1.y)) / 
@@ -183,11 +182,9 @@ private:
                 }
             }
             
-            if (x1 == x2 && y1 == y2) break;
-            
             int e2 = 2 * err;
             if (e2 > -dy) { err -= dy; x1 += sx; }
-            if (e2 < dx) { err += dx; y1 += sy; }
+            else if (e2 < dx) { err += dx; y1 += sy; }
         }
     }
     void initTexture()
