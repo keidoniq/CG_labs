@@ -75,6 +75,58 @@ void Model2D::shearWithAxis(const glm::vec2 &p1, const glm::vec2 &p2, float shx,
     accumulatedTransform = axisTransform(p1, p2, S) * accumulatedTransform;
 }
 
+void Model2D::rotateAroundPoint(const glm::vec2& point, float angle)
+{
+    glm::mat3 T1 = AffineTransform2D::translation(-point.x, -point.y);
+    glm::mat3 R  = AffineTransform2D::rotation(angle);
+    glm::mat3 T2 = AffineTransform2D::translation(point.x, point.y);
+
+    accumulatedTransform = T2 * R * T1 * accumulatedTransform;
+}
+
+void Model2D::scaleAroundPoint(const glm::vec2& point, float sx, float sy)
+{
+    glm::mat3 T1 = AffineTransform2D::translation(-point.x, -point.y);
+    glm::mat3 S  = AffineTransform2D::scaling(sx, sy);
+    glm::mat3 T2 = AffineTransform2D::translation(point.x, point.y);
+
+    accumulatedTransform = T2 * S * T1 * accumulatedTransform;
+}
+
+void Model2D::shearAroundPoint(const glm::vec2& point, float shx, float shy)
+{
+    glm::mat3 T1 = AffineTransform2D::translation(-point.x, -point.y);
+    glm::mat3 Sh = AffineTransform2D::shearing(shx, shy);
+    glm::mat3 T2 = AffineTransform2D::translation(point.x, point.y);
+
+    accumulatedTransform = T2 * Sh * T1 * accumulatedTransform;
+}
+
+void Model2D::rotateAroundCenter(float angle)
+{
+    VerticesMatrix vertices = currMatrix.getVertices();
+
+    if (vertices.empty()) return;
+
+    float sumX = 0.0f;
+    float sumY = 0.0f;
+
+    for (const auto& v : vertices) {
+        glm::vec3 p = v.getHomogeneousCoordinates();
+        sumX += p.x;
+        sumY += p.y;
+    }
+
+    float cx = sumX / vertices.size();
+    float cy = sumY / vertices.size();
+
+    glm::mat3 T1 = AffineTransform2D::translation(-cx, -cy);
+    glm::mat3 R  = AffineTransform2D::rotation(angle);
+    glm::mat3 T2 = AffineTransform2D::translation(cx, cy);
+
+    accumulatedTransform = T2 * R * T1 * accumulatedTransform;
+}
+
 void Model2D::startDrag(const glm::vec2 &worldPos)
 {
     isDragging = true;

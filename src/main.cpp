@@ -237,6 +237,10 @@ std::string controlsInfo() {
        << "I/J -> Scale\n"
        << "X/Y -> Shear\n"
        << "R/F -> Reflect X/Y\n"
+       << "Z/C -> Rotate around point\n"
+       << "V/B -> Scale around point\n"
+       << "N/M -> Shear around point\n"
+       << "U/O -> Rotate around center\n"
        << "1: Reflect around custom axis, X\n"
        << "2: Reflect around custom axis, Y\n"
        << "3: Reflect around custom axis, X and Y\n"
@@ -260,6 +264,64 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
+            case GLFW_KEY_U:
+                testModel->rotateAroundCenter(
+                    glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE"))
+                );
+                break;
+
+            case GLFW_KEY_O:
+                testModel->rotateAroundCenter(
+                    glm::radians(-TRANSFORM_COEF.at("ROTATE_ANGLE"))
+                );
+                break;
+
+            case GLFW_KEY_N:
+                testModel->shearAroundPoint(
+                    customPoint1,
+                    TRANSFORM_COEF.at("SHEAR"),
+                    0.0f
+                );
+                break;
+
+            case GLFW_KEY_M:
+                testModel->shearAroundPoint(
+                    customPoint1,
+                    0.0f,
+                    TRANSFORM_COEF.at("SHEAR")
+                );
+                break;
+
+            case GLFW_KEY_V:
+                testModel->scaleAroundPoint(
+                    customPoint1,
+                    TRANSFORM_COEF.at("SCALE_IN"),
+                    TRANSFORM_COEF.at("SCALE_IN")
+                );
+                break;
+
+            case GLFW_KEY_B:
+                testModel->scaleAroundPoint(
+                    customPoint1,
+                    TRANSFORM_COEF.at("SCALE_OUT"),
+                    TRANSFORM_COEF.at("SCALE_OUT")
+                );
+                break;
+
+
+            case GLFW_KEY_Z:
+                testModel->rotateAroundPoint(
+                    customPoint1,
+                    glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE"))
+                );
+                break;
+
+            case GLFW_KEY_C:
+                testModel->rotateAroundPoint(
+                    customPoint1,
+                    glm::radians(-TRANSFORM_COEF.at("ROTATE_ANGLE"))
+                );
+                break;
             // Translate
             case GLFW_KEY_W:
                 testModel->translate(0.0f, TRANSFORM_COEF.at("TRANSLATE"));
