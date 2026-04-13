@@ -4,6 +4,17 @@ void Scene2D::addModel(Model2D& model) {
     models.push_back(&model);
 }
 
+int Scene2D::getiNextModel() const
+{
+    if (models.empty()) return 0;
+    return (iCurrModel + 1) % models.size();
+}
+
+void Scene2D::toNextModel()
+{
+    iCurrModel = getiNextModel();
+}
+
 void Scene2D::updModels() const
 {
     for(auto m: models){
@@ -30,7 +41,7 @@ void Scene2D::handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode)
     switch(dragMode){
         case DragMode::Model:
             if(!models.empty())
-                models[0]->startDrag(worldPos);
+                models[iCurrModel]->startDrag(worldPos);
             break;
         case DragMode::Scene:
             camera.startDrag(worldPos);
@@ -47,7 +58,7 @@ void Scene2D::handleMouseDrag(const glm::vec2& screenPos) {
     switch(dragMode){
         case DragMode::Model:
             if(!models.empty())
-                models[0]->drag(worldPos);
+                models[iCurrModel]->drag(worldPos);
             break;
         case DragMode::Scene:
             camera.drag(worldPos);
@@ -61,7 +72,7 @@ void Scene2D::handleMouseDrag(const glm::vec2& screenPos) {
 void Scene2D::handleMouseRelease() {
     switch(dragMode){
         case DragMode::Model:
-            models[0]->endDrag();
+            models[iCurrModel]->endDrag();
             break;
         case DragMode::Scene:
             camera.endDrag();

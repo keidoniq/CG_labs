@@ -11,22 +11,26 @@ enum class DragMode {
     None, Scene, Model
 };
 
-
 class Scene2D {
 private:
     Camera2D camera;
-    std::vector<Model2D*> models;
     DragMode dragMode;
+    std::vector<Model2D*> models;
+    int iCurrModel = 0;
 
 public:
     Scene2D(): camera() { dragMode = DragMode::None; }
+    ~Scene2D() { for (auto m : models) delete m; }
     
     void addModel(Model2D& model);
+    void toNextModel();
     void clearModels();
-    Camera2D& getCamera() { return camera; }
-    
-    void render() const;
     void updModels() const;
+    Model2D* getCurrModel() { return models[iCurrModel];}
+    Camera2D& getCamera() { return camera; }
+    int getiNextModel() const;
+
+    void render() const;
     
     void handleMouseClick(const glm::vec2& screenPos, DragMode newDragMode);
     void handleMouseDrag(const glm::vec2& screenPos);

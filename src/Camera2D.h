@@ -21,7 +21,7 @@
 // • процедуры для построения координатных осей;
 // • при реализации могут понадобиться и другие методы
 //  (например, процедуры, реализующие перетаскивание графика мышью и масштабирование графика).
-const static float DEFAULT_DIST = 5.0f;
+const static float DEFAULT_DIST = 1.0f;
 
 class Camera2D {
 private:
@@ -39,7 +39,7 @@ private:
 public:
     Camera2D(float L = -DEFAULT_DIST, float R = DEFAULT_DIST, 
         float B=-DEFAULT_DIST, float T = DEFAULT_DIST, 
-        int W = 800, int H = 600, bool isDragging = false):
+        int W = 900, int H = 600, bool isDragging = false):
         L(L), R(R), B(B), T(T), W(W), H(H), isDragging(isDragging) {
 
             startBounds.emplace("L", L);

@@ -18,13 +18,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
-
-const unsigned int SCR_WIDTH = 800;
+void createModels();
+const unsigned int SCR_WIDTH = 900;
 const unsigned int SCR_HEIGHT = 600;
 
 const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
-    
-    {0, 0, 0},
     {0, 0, 1},
     {0, 1, 0},
     {1, 0, 0},
@@ -37,7 +35,7 @@ const std::map<std::string, float> TRANSFORM_COEF{
 };
 
 const float POLYGON_RADIUS = 0.4f;
-const unsigned int POLYGON_N_SIDES = 6;
+const unsigned int POLYGON_N_SIDES = 5;
 
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
@@ -58,7 +56,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lab_01 - Model2D", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Лабораторная работа 1.2: составные аффинные преобразования каркасной 2D модели", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window\n";
@@ -87,25 +85,8 @@ int main()
     scene->getCamera().setViewport(SCR_WIDTH, SCR_HEIGHT);
     scene->getCamera().updAxes();
 
-    Vertices2D convexPolygon;
-    for (int i = 0; i < POLYGON_N_SIDES; ++i) {
-        float angle = 2.0f * glm::pi<float>() * i / POLYGON_N_SIDES;
-        float x = POLYGON_RADIUS * glm::cos(angle);
-        float y = POLYGON_RADIUS * glm::sin(angle);
-        convexPolygon.addVertex(x, y);
-    }
-
-    originalVertices = new Vertices2D(convexPolygon);
-
-    Edges polygonEdges;
-    for (int i = 0; i < POLYGON_N_SIDES - 1; ++i) {
-        polygonEdges.addEdge(i, i + 1);
-    }
-    polygonEdges.addEdge(POLYGON_N_SIDES - 1, 0);
-
-    //create model
-    testModel = new Model2D(convexPolygon, polygonEdges);
-    scene->addModel(*testModel);
+    std::vector<Model2D*> models;
+    createModels();
 
     //setup buffers
     unsigned int VBO, VAO, EBO;
@@ -150,7 +131,7 @@ int main()
             
             // colors
             if (wireframe)
-                vertices.insert(vertices.end(),COLOURS_TO_PICK[0].begin(),COLOURS_TO_PICK[0].end());
+                vertices.insert(vertices.end(), {0, 0, 0});
             else{
                 int id_colour = i % COLOURS_TO_PICK.size();
                 vertices.insert(vertices.end(),COLOURS_TO_PICK[id_colour].begin(),COLOURS_TO_PICK[id_colour].end());
@@ -180,7 +161,7 @@ int main()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
         // render
-        glClearColor(0.69, 0.79, 0.85, 0.74f);
+        glClearColor(0.89, 0.93, 0.98, 1.f);//0.69, 0.79, 0.85, 0.74f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         scene->render();
@@ -265,9 +246,123 @@ std::string controlsInfo() {
        << "9: Shear along custom axis, X and Y\n"
        << "T -> Reset to Init\n"
        << "P -> Change draw mode\n"
-       << "M -> Next Model\n"
+       << "N -> Next Model\n"
        << "ESC -> Exit.\n";
     return ss.str();
+}
+
+void createModels()
+{
+    // {// ===== convexPolygon 9 =====
+    //     Vertices2D convexPolygon;
+    //     for (int i = 0; i < POLYGON_N_SIDES; ++i) {
+    //         float angle = 2.0f * glm::pi<float>() * i / POLYGON_N_SIDES;
+    //         float x = POLYGON_RADIUS * glm::cos(angle);
+    //         float y = POLYGON_RADIUS * glm::sin(angle);
+    //         convexPolygon.addVertex(x, y);
+    //     }
+    //     originalVertices = new Vertices2D(convexPolygon);
+    //     Edges polygonEdges;
+    //     for (int i = 0; i < POLYGON_N_SIDES - 1; ++i) {
+    //         polygonEdges.addEdge(i, i + 1);
+    //     }
+    //     polygonEdges.addEdge(POLYGON_N_SIDES - 1, 0);
+    //     testModel = new Model2D(convexPolygon, polygonEdges);
+    //     scene->addModel(*testModel);
+    // }
+    {// ===== TRIANGLE =====
+        Vertices2D triangle;
+        triangle.addVertex(0.0f, 0.3f);
+        triangle.addVertex(-0.3f, -0.3f);
+        triangle.addVertex(0.3f, -0.3f);
+
+        Edges triangleEdges;
+        triangleEdges.addEdge(0,1);
+        triangleEdges.addEdge(1,2);
+        triangleEdges.addEdge(2,0);
+
+        testModel = new Model2D(triangle, triangleEdges);
+        scene->addModel(*testModel);
+    }
+
+    {// ===== SQUARE =====
+        Vertices2D square;
+        square.addVertex(-0.3f, 0.3f);
+        square.addVertex(0.3f, 0.3f);
+        square.addVertex(0.3f, -0.3f);
+        square.addVertex(-0.3f, -0.3f);
+
+        Edges squareEdges;
+        squareEdges.addEdge(0,1);
+        squareEdges.addEdge(1,2);
+        squareEdges.addEdge(2,3);
+        squareEdges.addEdge(3,0);
+
+        Model2D* model3 = new Model2D(square, squareEdges);
+        scene->addModel(*model3);
+    }
+    
+    {// ===== HEXAGON =====
+        Vertices2D convexPolygon;
+        int N_SIDES = 6;
+        for (int i = 0; i < N_SIDES; ++i) {
+            float angle = 2.0f * glm::pi<float>() * i / N_SIDES;
+            float x = POLYGON_RADIUS * glm::cos(angle);
+            float y = POLYGON_RADIUS * glm::sin(angle);
+            convexPolygon.addVertex(x, y);
+        }
+        originalVertices = new Vertices2D(convexPolygon);
+        Edges polygonEdges;
+        for (int i = 0; i < N_SIDES - 1; ++i) {
+            polygonEdges.addEdge(i, i + 1);
+        }
+        polygonEdges.addEdge(N_SIDES - 1, 0);
+        Model2D* poly6Model = new Model2D(convexPolygon, polygonEdges);
+        scene->addModel(*poly6Model);
+    }
+
+    {// ===== STAR (FAN) =====
+        Vertices2D star;
+        star.addVertex(0.0f, 0.0f);
+        const int N = 10;
+        float R_outer = 0.4f;
+        float R_inner = 0.18f;
+        for (int i = 0; i <= N; ++i) {
+            float angle = i * 2.0f * glm::pi<float>() / N;
+
+            float r = (i % 2 == 0) ? R_outer : R_inner;
+
+            float x = r * glm::cos(angle);
+            float y = r * glm::sin(angle);
+            star.addVertex(x, y);
+        }
+
+        Edges starEdges;
+        for (int i = 1; i <= N; ++i)
+            starEdges.addEdge(i, i + 1);
+
+        Model2D* starModel = new Model2D(star, starEdges);
+        scene->addModel(*starModel);
+    }
+
+    {// ===== HOUSE (TRIANGLE FAN READY) =====
+        Vertices2D house;
+        house.addVertex(0.0f, 0.0f);
+        house.addVertex(-0.3f, -0.3f); // 1
+        house.addVertex( 0.3f, -0.3f); // 2
+        house.addVertex( 0.3f,  0.1f); // 3
+        house.addVertex( 0.0f,  0.5f); // 4 roof peak
+        house.addVertex(-0.3f,  0.1f); // 5
+        house.addVertex(-0.3f, -0.3f); // back to base (optional not required)
+
+        Edges houseEdges;
+        for (int i = 1; i < 5; ++i)
+            houseEdges.addEdge(i, i + 1);
+        houseEdges.addEdge(5, 1);
+
+        Model2D* modelHouse = new Model2D(house, houseEdges);
+        scene->addModel(*modelHouse);
+    }
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -292,14 +387,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
 
             //shear around
-            case GLFW_KEY_N:
+            case GLFW_KEY_L:
                 testModel->shearAroundPoint(
                     customPoint1,
                     TRANSFORM_COEF.at("SHEAR"),
                     0.0f
                 );
                 break;
-            case GLFW_KEY_L:
+            case GLFW_KEY_M:
                 testModel->shearAroundPoint(
                     customPoint1,
                     0.0f,
@@ -399,7 +494,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 testModel->scaleWithAxis(customPoint1, customPoint2, 1.1f, 1.f);
                 break;
             case GLFW_KEY_5:
-                testModel->scaleWithAxis(customPoint1, customPoint2, 1.f, (1.f/1.1));
+                testModel->scaleWithAxis(customPoint1, customPoint2, 1.f, (1.1f));
                 break;
             case GLFW_KEY_6:
                 testModel->scaleWithAxis(customPoint1, customPoint2, 1.1f, 1.1f);
@@ -430,7 +525,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
                 break;
-            case GLFW_KEY_M:
+            case GLFW_KEY_N:
+                scene->toNextModel();
+                testModel = scene->getCurrModel();
                 break;
         }
     }
