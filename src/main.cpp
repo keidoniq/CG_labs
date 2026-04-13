@@ -23,6 +23,8 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
+    
+    {0, 0, 0},
     {0, 0, 1},
     {0, 1, 0},
     {1, 0, 0},
@@ -40,6 +42,7 @@ const unsigned int POLYGON_N_SIDES = 6;
 const std::string VSHADER_PATH = "src/shaders/vshader.glsl";
 const std::string FSHADER_PATH = "src/shaders/fshader.glsl";
 
+bool wireframe = true;
 Scene2D* scene = nullptr;
 Model2D* testModel = nullptr;
 Vertices2D* originalVertices = nullptr;
@@ -111,7 +114,10 @@ int main()
     glGenBuffers(1, &EBO);
 
     //gl wireframe rendering
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (wireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    else 
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 model = glm::mat4(1.0f);
@@ -143,9 +149,13 @@ int main()
             vertices.push_back(0.0f);
             
             // colors
-            int id_colour = i % COLOURS_TO_PICK.size();
-            vertices.insert(vertices.end(),COLOURS_TO_PICK[id_colour].begin(),COLOURS_TO_PICK[id_colour].end());
-            ++i;
+            if (wireframe)
+                vertices.insert(vertices.end(),COLOURS_TO_PICK[0].begin(),COLOURS_TO_PICK[0].end());
+            else{
+                int id_colour = i % COLOURS_TO_PICK.size();
+                vertices.insert(vertices.end(),COLOURS_TO_PICK[id_colour].begin(),COLOURS_TO_PICK[id_colour].end());
+                ++i;
+            }
         }
 
         // edge indices
@@ -176,10 +186,13 @@ int main()
         scene->render();
         // render model
         glBindVertexArray(VAO);
-        //glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
         glDrawElements(GL_TRIANGLE_FAN, indices.size(), GL_UNSIGNED_INT, 0);
+        // if (wireframe)
+        //     glDrawElements(GL_TRIANGLE_FAN, indices.size(), GL_UNSIGNED_INT, 0);
+        // else 
+        //     glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);        
         triShader.release();
-
+ 
         // glfw: swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -239,7 +252,7 @@ std::string controlsInfo() {
        << "R/F -> Reflect X/Y\n"
        << "Z/C -> Rotate around point\n"
        << "V/B -> Scale around point\n"
-       << "N/M -> Shear around point\n"
+       << "L/M -> Shear around point\n"
        << "U/O -> Rotate around center\n"
        << "1: Reflect around custom axis, X\n"
        << "2: Reflect around custom axis, Y\n"
@@ -251,6 +264,8 @@ std::string controlsInfo() {
        << "8: Shear along custom axis, Y\n"
        << "9: Shear along custom axis, X and Y\n"
        << "T -> Reset to Init\n"
+       << "P -> Change draw mode\n"
+       << "M -> Next Model\n"
        << "ESC -> Exit.\n";
     return ss.str();
 }
@@ -264,18 +279,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
+            //rotate around centroid
             case GLFW_KEY_U:
                 testModel->rotateAroundCenter(
                     glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE"))
                 );
                 break;
-
             case GLFW_KEY_O:
                 testModel->rotateAroundCenter(
                     glm::radians(-TRANSFORM_COEF.at("ROTATE_ANGLE"))
                 );
                 break;
 
+            //shear around
             case GLFW_KEY_N:
                 testModel->shearAroundPoint(
                     customPoint1,
@@ -283,15 +299,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     0.0f
                 );
                 break;
-
-            case GLFW_KEY_M:
+            case GLFW_KEY_L:
                 testModel->shearAroundPoint(
                     customPoint1,
                     0.0f,
                     TRANSFORM_COEF.at("SHEAR")
                 );
                 break;
-
+            
+            //scale around point
             case GLFW_KEY_V:
                 testModel->scaleAroundPoint(
                     customPoint1,
@@ -299,7 +315,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     TRANSFORM_COEF.at("SCALE_IN")
                 );
                 break;
-
             case GLFW_KEY_B:
                 testModel->scaleAroundPoint(
                     customPoint1,
@@ -308,20 +323,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 );
                 break;
 
-
+            //rotate around point
             case GLFW_KEY_Z:
                 testModel->rotateAroundPoint(
                     customPoint1,
                     glm::radians(TRANSFORM_COEF.at("ROTATE_ANGLE"))
                 );
                 break;
-
             case GLFW_KEY_C:
                 testModel->rotateAroundPoint(
                     customPoint1,
                     glm::radians(-TRANSFORM_COEF.at("ROTATE_ANGLE"))
                 );
                 break;
+
             // Translate
             case GLFW_KEY_W:
                 testModel->translate(0.0f, TRANSFORM_COEF.at("TRANSLATE"));
@@ -381,13 +396,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             
             //Scale with axis
             case GLFW_KEY_4:
-                testModel->scaleWithAxis(customPoint1, customPoint2, 1.1f, 1.1f);
+                testModel->scaleWithAxis(customPoint1, customPoint2, 1.1f, 1.f);
                 break;
             case GLFW_KEY_5:
                 testModel->scaleWithAxis(customPoint1, customPoint2, 1.f, (1.f/1.1));
                 break;
             case GLFW_KEY_6:
-                testModel->scaleWithAxis(customPoint1, customPoint2, 1.f, 1.1f);
+                testModel->scaleWithAxis(customPoint1, customPoint2, 1.1f, 1.1f);
                 break;
             
             //Shear with axis
@@ -401,11 +416,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
             case GLFW_KEY_9:
                 testModel->shearWithAxis(customPoint1, customPoint2, 
-                    TRANSFORM_COEF.at("SHEAR"), 0.f);
+                    TRANSFORM_COEF.at("SHEAR"),TRANSFORM_COEF.at("SHEAR"));
                 break;
                 
             case GLFW_KEY_T:
                 testModel->resetTransformation();
+                break;
+            case GLFW_KEY_P:
+                wireframe = !wireframe;
+                if (wireframe)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+                break;
+            case GLFW_KEY_M:
                 break;
         }
     }
