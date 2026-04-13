@@ -30,7 +30,7 @@ const std::vector<std::vector<float>> COLOURS_TO_PICK  = {
 
 const std::map<std::string, float> TRANSFORM_COEF{
     {"TRANSLATE", 0.05f}, {"SCALE", 0.1f},
-    {"ROTATE_ANGLE", 10}, {"SHEAR", 0.1f},
+    {"ROTATE_ANGLE", 0.25f}, {"SHEAR", 0.1f},
     {"SCALE_IN", 2.f}, {"SCALE_OUT", 0.5f}, 
 };
 
@@ -231,6 +231,7 @@ std::string controlsInfo() {
        << "I/J -> Scale\n"
        << "X/Y -> Shear\n"
        << "R/F -> Reflect X/Y\n"
+       << "G/K -> Reflect around point\n"
        << "Z/C -> Rotate around point\n"
        << "V/B -> Scale around point\n"
        << "L/M -> Shear around point\n"
@@ -253,23 +254,6 @@ std::string controlsInfo() {
 
 void createModels()
 {
-    // {// ===== convexPolygon 9 =====
-    //     Vertices2D convexPolygon;
-    //     for (int i = 0; i < POLYGON_N_SIDES; ++i) {
-    //         float angle = 2.0f * glm::pi<float>() * i / POLYGON_N_SIDES;
-    //         float x = POLYGON_RADIUS * glm::cos(angle);
-    //         float y = POLYGON_RADIUS * glm::sin(angle);
-    //         convexPolygon.addVertex(x, y);
-    //     }
-    //     originalVertices = new Vertices2D(convexPolygon);
-    //     Edges polygonEdges;
-    //     for (int i = 0; i < POLYGON_N_SIDES - 1; ++i) {
-    //         polygonEdges.addEdge(i, i + 1);
-    //     }
-    //     polygonEdges.addEdge(POLYGON_N_SIDES - 1, 0);
-    //     testModel = new Model2D(convexPolygon, polygonEdges);
-    //     scene->addModel(*testModel);
-    // }
     {// ===== TRIANGLE =====
         Vertices2D triangle;
         triangle.addVertex(0.0f, 0.3f);
@@ -374,6 +358,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
+            //reflect around point
+            case GLFW_KEY_G:
+                testModel->reflectAroundPoint(glm::vec2(1,1), true, false);
+                break;
+            case GLFW_KEY_K:
+                testModel->reflectAroundPoint(glm::vec2(1,1), false, true);
+                break;
+
             //rotate around centroid
             case GLFW_KEY_U:
                 testModel->rotateAroundCenter(
@@ -480,13 +472,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
             //Reflect with axis
             case GLFW_KEY_1:
-                testModel->reflectWithAxis(customPoint1, customPoint2, true, false);
+                testModel->reflectWithAxis(glm::vec2(0,0), glm::vec2(5,5), true, false);
                 break;
             case GLFW_KEY_2:
-                testModel->reflectWithAxis(customPoint1, customPoint2, false, true);
+                testModel->reflectWithAxis(glm::vec2(0,0), glm::vec2(5,5), false, true);
                 break;
             case GLFW_KEY_3:
-                testModel->reflectWithAxis(customPoint1, customPoint2, true, true);
+                testModel->reflectWithAxis(glm::vec2(-1,-1), glm::vec2(1,1), true, true);
                 break;
             
             //Scale with axis

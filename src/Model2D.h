@@ -42,6 +42,7 @@ public:
     void shearWithAxis(const glm::vec2& p1, const glm::vec2& p2, float shx, float shy);
 
     void rotateAroundPoint(const glm::vec2& point, float angle);
+    void reflectAroundPoint(const glm::vec2& point, bool reflectX, bool reflectY);
     void scaleAroundPoint(const glm::vec2& point, float sx, float sy);
     void shearAroundPoint(const glm::vec2& point, float shx, float shy);
     void rotateAroundCenter(float angle);

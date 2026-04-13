@@ -84,6 +84,16 @@ void Model2D::rotateAroundPoint(const glm::vec2& point, float angle)
     accumulatedTransform = T2 * R * T1 * accumulatedTransform;
 }
 
+
+void Model2D::reflectAroundPoint(const glm::vec2& point, bool reflectX, bool reflectY)
+{
+    glm::mat3 T1 = AffineTransform2D::translation(-point.x, -point.y);
+    glm::mat3 R  = AffineTransform2D::reflection(reflectX, reflectY);
+    glm::mat3 T2 = AffineTransform2D::translation(point.x, point.y);
+
+    accumulatedTransform = T2 * R * T1 * accumulatedTransform;
+}
+
 void Model2D::scaleAroundPoint(const glm::vec2& point, float sx, float sy)
 {
     glm::mat3 T1 = AffineTransform2D::translation(-point.x, -point.y);
